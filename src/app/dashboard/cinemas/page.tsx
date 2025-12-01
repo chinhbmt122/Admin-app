@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,16 +37,9 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
-import type { Cinema, CinemaStatus } from '@/types';
+import type { Cinema, CinemaStatus, CreateCinemaRequest } from '@/types';
 
 import { mockCinemas } from '@/lib/mockData'; 
 
@@ -58,7 +51,7 @@ export default function CinemasPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedCinema, setSelectedCinema] = useState<Cinema | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<CreateCinemaRequest>>({
     name: '',
     address: '',
     city: '',
@@ -66,34 +59,23 @@ export default function CinemasPage() {
     phone: '',
     email: '',
     description: '',
-    status: 'ACTIVE' as CinemaStatus,
+    timezone: 'Asia/Ho_Chi_Minh',
+    amenities: [],
+    images: [],
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchCinemas();
-  }, []);
-
   const fetchCinemas = async () => {
     try {
-      /*
       setLoading(true);
-      const response = await api.get('/cinemas', {
-        params: { lat: 10.762622, lng: 106.660172 }
-      });
-      setCinemas(response.data);
-      */
+      // const response = await api.get('/cinema'); // Note: singular 'cinema' per API contract
+      // setCinemas(response.data.data);
       
-      setLoading(true);
-
-        // ⭐️ PHẦN THAY THẾ: Dùng dữ liệu giả
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay 
-        setCinemas(mockCinemas);
-        // ⭐️ KẾT THÚC PHẦN THAY THẾ
-
-
-
-    } catch (error) {
+      // ⭐️ PHẦN THAY THẾ: Dùng dữ liệu giả
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setCinemas(mockCinemas);
+      // ⭐️ KẾT THÚC PHẦN THAY THẾ
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to fetch cinemas',
@@ -104,19 +86,23 @@ export default function CinemasPage() {
     }
   };
 
+  useEffect(() => {
+    fetchCinemas();
+  }, []);
+
   const handleSubmit = async () => {
     try {
       if (selectedCinema) {
-        await api.patch(`/cinemas/${selectedCinema.id}`, formData);
+        await api.patch(`/cinema/${selectedCinema.id}`, formData); // singular 'cinema'
         toast({ title: 'Success', description: 'Cinema updated successfully' });
       } else {
-        await api.post('/cinemas', formData);
+        await api.post('/cinema', formData); // singular 'cinema'
         toast({ title: 'Success', description: 'Cinema created successfully' });
       }
       setDialogOpen(false);
       fetchCinemas();
       resetForm();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to save cinema',
@@ -128,11 +114,11 @@ export default function CinemasPage() {
   const handleDelete = async () => {
     if (!selectedCinema) return;
     try {
-      await api.delete(`/cinemas/${selectedCinema.id}`);
+      await api.delete(`/cinema/${selectedCinema.id}`); // singular 'cinema'
       toast({ title: 'Success', description: 'Cinema deleted successfully' });
       setDeleteDialogOpen(false);
       fetchCinemas();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to delete cinema',
@@ -150,7 +136,9 @@ export default function CinemasPage() {
       phone: '',
       email: '',
       description: '',
-      status: 'ACTIVE',
+      timezone: 'Asia/Ho_Chi_Minh',
+      amenities: [],
+      images: [],
     });
     setSelectedCinema(null);
   };
@@ -164,8 +152,17 @@ export default function CinemasPage() {
       district: cinema.district || '',
       phone: cinema.phone || '',
       email: cinema.email || '',
+      website: cinema.website || '',
+      latitude: cinema.latitude,
+      longitude: cinema.longitude,
       description: cinema.description || '',
-      status: cinema.status,
+      amenities: cinema.amenities || [],
+      facilities: cinema.facilities,
+      images: cinema.images || [],
+      virtualTour360Url: cinema.virtualTour360Url || '',
+      operatingHours: cinema.operatingHours,
+      socialMedia: cinema.socialMedia,
+      timezone: cinema.timezone,
     });
     setDialogOpen(true);
   };
@@ -277,7 +274,7 @@ export default function CinemasPage() {
                         <span className="text-yellow-500 mr-1">★</span>
                         {cinema.rating?.toFixed(1) || 'N/A'}
                         <span className="text-gray-400 ml-1 text-xs">
-                          ({cinema.total_reviews})
+                          ({cinema.totalReviews})
                         </span>
                       </div>
                     </TableCell>
@@ -342,24 +339,6 @@ export default function CinemasPage() {
                   }
                   placeholder="Cinestar Quốc Thanh"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, status: value as CinemaStatus })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                    <SelectItem value="CLOSED">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 

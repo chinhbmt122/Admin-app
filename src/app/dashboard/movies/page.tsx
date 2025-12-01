@@ -38,10 +38,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
-import type { Movie } from '@/types';
+import type { Movie, AgeRating, LanguageType, MovieCast, CreateMovieDto } from '@/types';
 import Image from 'next/image';
 
-import { mockMovies } from '@/lib/mockData'; // ⭐️ Import mock data
+import { mockMovies, mockGenres } from '@/lib/mockData'; // ⭐️ Import mock data
 
 
 export default function MoviesPage() {
@@ -51,20 +51,28 @@ export default function MoviesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<CreateMovieDto>>({
     title: '',
-    description: '',
+    overview: '',
+    originalTitle: '',
     posterUrl: '',
     trailerUrl: '',
-    genres: [] as string[],
-    durationMinutes: 0,
-    ageRating: '',
+    backdropUrl: '',
+    runtime: 0,
     releaseDate: '',
-    status: 'NOW_SHOWING',
+    ageRating: 'P' as AgeRating,
+    originalLanguage: 'en',
+    spokenLanguages: ['en'],
+    languageType: 'SUBTITLE' as LanguageType,
+    productionCountry: 'US',
+    director: '',
+    cast: [] as MovieCast[],
+    genreIds: [] as string[],
   });
   const { toast } = useToast();
 
-  const genreOptions = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Animation', 'Adventure', 'Fantasy'];
+  const ageRatingOptions: AgeRating[] = ['P', 'K', 'T13', 'T16', 'T18', 'C'];
+  const languageTypeOptions: LanguageType[] = ['ORIGINAL', 'SUBTITLE', 'DUBBED'];
 
   useEffect(() => {
     fetchMovies();
@@ -72,20 +80,15 @@ export default function MoviesPage() {
 
   const fetchMovies = async () => {
     try {
-      /*
       setLoading(true);
-      const response = await api.get('/movies');
-      setMovies(response.data);
-      */
-
-       setLoading(true);
+      // const response = await api.get('/movies');
+      // setMovies(response.data.data); // API returns { success, data, message }
             
-            // ⭐️ PHẦN THAY THẾ
-            await new Promise(resolve => setTimeout(resolve, 500)); 
-            setMovies(mockMovies); 
-            // ⭐️ KẾT THÚC PHẦN THAY THẾ
-            
-    } catch (error) {
+      // ⭐️ PHẦN THAY THẾ
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+      setMovies(mockMovies); 
+      // ⭐️ KẾT THÚC PHẦN THAY THẾ
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to fetch movies',
@@ -99,7 +102,7 @@ export default function MoviesPage() {
   const handleSubmit = async () => {
     try {
       if (selectedMovie) {
-        await api.patch(`/movies/${selectedMovie.id}`, formData);
+        await api.put(`/movies/${selectedMovie.id}`, formData);
         toast({ title: 'Success', description: 'Movie updated successfully' });
       } else {
         await api.post('/movies', formData);
@@ -108,7 +111,7 @@ export default function MoviesPage() {
       setDialogOpen(false);
       fetchMovies();
       resetForm();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to save movie',
@@ -124,7 +127,7 @@ export default function MoviesPage() {
       toast({ title: 'Success', description: 'Movie deleted successfully' });
       setDeleteDialogOpen(false);
       fetchMovies();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to delete movie',
@@ -136,14 +139,21 @@ export default function MoviesPage() {
   const resetForm = () => {
     setFormData({
       title: '',
-      description: '',
+      overview: '',
+      originalTitle: '',
       posterUrl: '',
       trailerUrl: '',
-      genres: [],
-      durationMinutes: 0,
-      ageRating: '',
+      backdropUrl: '',
+      runtime: 0,
       releaseDate: '',
-      status: 'NOW_SHOWING',
+      ageRating: 'P',
+      originalLanguage: 'en',
+      spokenLanguages: ['en'],
+      languageType: 'SUBTITLE',
+      productionCountry: 'US',
+      director: '',
+      cast: [],
+      genreIds: [],
     });
     setSelectedMovie(null);
   };
@@ -152,14 +162,21 @@ export default function MoviesPage() {
     setSelectedMovie(movie);
     setFormData({
       title: movie.title,
-      description: movie.description || '',
-      posterUrl: movie.posterUrl || '',
+      overview: movie.overview,
+      originalTitle: movie.originalTitle || '',
+      posterUrl: movie.posterUrl,
       trailerUrl: movie.trailerUrl || '',
-      genres: movie.genres,
-      durationMinutes: movie.durationMinutes,
-      ageRating: movie.ageRating || '',
+      backdropUrl: movie.backdropUrl || '',
+      runtime: movie.runtime,
       releaseDate: movie.releaseDate,
-      status: movie.status,
+      ageRating: movie.ageRating,
+      originalLanguage: movie.originalLanguage,
+      spokenLanguages: movie.spokenLanguages,
+      languageType: movie.languageType,
+      productionCountry: movie.productionCountry,
+      director: movie.director || '',
+      cast: movie.cast,
+      genreIds: movie.genre.map(g => g.id),
     });
     setDialogOpen(true);
   };
@@ -264,29 +281,38 @@ export default function MoviesPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="line-clamp-1">{movie.title}</CardTitle>
                 <CardDescription className="line-clamp-2">
-                  {movie.description || 'No description available'}
+                  {movie.overview || 'No description available'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">Duration:</span>
-                    <span className="font-medium">{movie.durationMinutes} mins</span>
+                    <span className="font-medium">{movie.runtime} mins</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">Rating:</span>
-                    <span className="font-medium">{movie.ageRating || 'N/A'}</span>
+                    <span className="font-medium">{movie.ageRating}</span>
                   </div>
+                  {movie.cast && movie.cast.length > 0 && (
+                    <div className="text-sm">
+                      <span className="text-gray-500">Cast: </span>
+                      <span className="font-medium">
+                        {movie.cast.slice(0, 2).map(c => c.name).join(', ')}
+                        {movie.cast.length > 2 && '...'}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {movie.genres.slice(0, 3).map((genre) => (
-                      <Badge key={genre} variant="secondary" className="text-xs">
-                        {genre}
+                    {movie.genre.slice(0, 3).map((g) => (
+                      <Badge key={g.id} variant="secondary" className="text-xs">
+                        {g.name}
                       </Badge>
                     ))}
                   </div>
                   <div className="pt-2">
-                    <Badge className={getStatusColor(movie.status)}>
-                      {movie.status.replace('_', ' ')}
+                    <Badge className={getStatusColor(movie.status || 'upcoming')}>
+                      {(movie.status || 'upcoming').replace('_', ' ')}
                     </Badge>
                   </div>
                 </div>
@@ -321,26 +347,49 @@ export default function MoviesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
+              <Label htmlFor="originalTitle">Original Title</Label>
+              <Input
+                id="originalTitle"
+                value={formData.originalTitle}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData({ ...formData, originalTitle: e.target.value })
                 }
-                placeholder="Enter movie description..."
+                placeholder="Original title..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="overview">Overview *</Label>
+              <Textarea
+                id="overview"
+                value={formData.overview}
+                onChange={(e) =>
+                  setFormData({ ...formData, overview: e.target.value })
+                }
+                placeholder="Enter movie overview..."
                 rows={4}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="posterUrl">Poster URL</Label>
+                <Label htmlFor="posterUrl">Poster URL *</Label>
                 <Input
                   id="posterUrl"
                   value={formData.posterUrl}
                   onChange={(e) =>
                     setFormData({ ...formData, posterUrl: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="backdropUrl">Backdrop URL</Label>
+                <Input
+                  id="backdropUrl"
+                  value={formData.backdropUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, backdropUrl: e.target.value })
                   }
                   placeholder="https://..."
                 />
@@ -360,27 +409,36 @@ export default function MoviesPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="durationMinutes">Duration (mins) *</Label>
+                <Label htmlFor="runtime">Runtime (mins) *</Label>
                 <Input
-                  id="durationMinutes"
+                  id="runtime"
                   type="number"
-                  value={formData.durationMinutes}
+                  value={formData.runtime}
                   onChange={(e) =>
-                    setFormData({ ...formData, durationMinutes: parseInt(e.target.value) || 0 })
+                    setFormData({ ...formData, runtime: parseInt(e.target.value) || 0 })
                   }
                   placeholder="120"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ageRating">Age Rating</Label>
-                <Input
-                  id="ageRating"
+                <Label htmlFor="ageRating">Age Rating *</Label>
+                <Select
                   value={formData.ageRating}
-                  onChange={(e) =>
-                    setFormData({ ...formData, ageRating: e.target.value })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, ageRating: value as AgeRating })
                   }
-                  placeholder="PG-13"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ageRatingOptions.map((rating) => (
+                      <SelectItem key={rating} value={rating}>
+                        {rating}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="releaseDate">Release Date *</Label>
@@ -395,44 +453,138 @@ export default function MoviesPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="originalLanguage">Original Language *</Label>
+                <Input
+                  id="originalLanguage"
+                  value={formData.originalLanguage}
+                  onChange={(e) =>
+                    setFormData({ ...formData, originalLanguage: e.target.value })
+                  }
+                  placeholder="en"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="languageType">Language Type *</Label>
+                <Select
+                  value={formData.languageType}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, languageType: value as LanguageType })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {languageTypeOptions.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="productionCountry">Production Country *</Label>
+                <Input
+                  id="productionCountry"
+                  value={formData.productionCountry}
+                  onChange={(e) =>
+                    setFormData({ ...formData, productionCountry: e.target.value })
+                  }
+                  placeholder="US"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
+              <Label htmlFor="director">Director</Label>
+              <Input
+                id="director"
+                value={formData.director}
+                onChange={(e) =>
+                  setFormData({ ...formData, director: e.target.value })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NOW_SHOWING">Now Showing</SelectItem>
-                  <SelectItem value="COMING_SOON">Coming Soon</SelectItem>
-                  <SelectItem value="ENDED">Ended</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Christopher Nolan"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cast (Diễn viên)</Label>
+              <div className="space-y-2">
+                {(formData.cast || []).map((actor, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={actor.name}
+                      onChange={(e) => {
+                        const newCast = [...(formData.cast || [])];
+                        newCast[index] = { ...newCast[index], name: e.target.value };
+                        setFormData({ ...formData, cast: newCast });
+                      }}
+                      placeholder="Actor name"
+                      className="flex-1"
+                    />
+                    <Input
+                      value={actor.profileUrl || ''}
+                      onChange={(e) => {
+                        const newCast = [...(formData.cast || [])];
+                        newCast[index] = { ...newCast[index], profileUrl: e.target.value };
+                        setFormData({ ...formData, cast: newCast });
+                      }}
+                      placeholder="Profile URL (optional)"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newCast = (formData.cast || []).filter((_, i) => i !== index);
+                        setFormData({ ...formData, cast: newCast });
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      cast: [...(formData.cast || []), { name: '', profileUrl: '' }],
+                    });
+                  }}
+                  className="w-full"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Cast Member
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label>Genres *</Label>
               <div className="flex flex-wrap gap-2">
-                {genreOptions.map((genre) => (
+                {mockGenres.map((genre) => (
                   <Button
-                    key={genre}
+                    key={genre.id}
                     type="button"
-                    variant={formData.genres.includes(genre) ? 'default' : 'outline'}
+                    variant={formData.genreIds?.includes(genre.id) ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => {
                       setFormData({
                         ...formData,
-                        genres: formData.genres.includes(genre)
-                          ? formData.genres.filter((g) => g !== genre)
-                          : [...formData.genres, genre],
+                        genreIds: formData.genreIds?.includes(genre.id)
+                          ? formData.genreIds.filter((id) => id !== genre.id)
+                          : [...(formData.genreIds || []), genre.id],
                       });
                     }}
                   >
-                    {genre}
+                    {genre.name}
                   </Button>
                 ))}
               </div>

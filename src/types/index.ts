@@ -1,9 +1,13 @@
 // src/types/index.ts (FIXED)
 
 export type CinemaStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED';
-export type HallType = 'STANDARD' | 'VIP' | 'IMAX' | 'FOUR_DX' | 'PREMIUM';
+export type HallType = 'STANDARD' | 'PREMIUM' | 'IMAX' | 'FOUR_DX';
+export type HallStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED';
+export type LayoutType = 'STANDARD' | 'DUAL_AISLE' | 'STADIUM';
 export type SeatType = 'STANDARD' | 'VIP' | 'COUPLE' | 'PREMIUM' | 'WHEELCHAIR';
-export type ShowtimeStatus = 'SCHEDULED' | 'SELLING' | 'SOLD_OUT' | 'CANCELLED' | 'COMPLETED';
+export type ShowtimeStatus = 'SELLING' | 'STOPPED' | 'CANCELLED';
+export type ShowtimeFormat = 'TWO_D' | 'THREE_D' | 'IMAX' | 'FOUR_DX';
+export type DayType = 'WEEKDAY' | 'WEEKEND' | 'HOLIDAY';
 
 // Thay thế `any` bằng kiểu Object cụ thể hơn
 type GenericObject = Record<string, unknown>;
@@ -21,62 +25,170 @@ export interface Cinema {
   longitude?: number;
   description?: string;
   amenities: string[];
-  facilities?: GenericObject; // Sửa lỗi any
+  facilities?: GenericObject;
   images: string[];
-  virtual_tour_360_url?: string;
+  virtualTour360Url?: string;
   rating?: number;
-  total_reviews: number;
-  operating_hours?: GenericObject; // Sửa lỗi any
-  social_media?: GenericObject; // Sửa lỗi any
+  totalReviews: number;
+  operatingHours?: GenericObject;
+  socialMedia?: GenericObject;
   status: CinemaStatus;
   timezone: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCinemaRequest {
+  name: string;
+  address: string;
+  city: string;
+  district?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  latitude?: number;
+  longitude?: number;
+  description?: string;
+  amenities?: string[];
+  facilities?: GenericObject;
+  images?: string[];
+  virtualTour360Url?: string;
+  operatingHours?: GenericObject;
+  socialMedia?: GenericObject;
+  timezone: string;
 }
 
 export interface Hall {
   id: string;
-  cinema_id: string;
+  cinemaId: string;
   name: string;
   type: HallType;
   capacity: number;
   rows: number;
-  screen_type?: string;
-  sound_system?: string;
+  screenType?: string;
+  soundSystem?: string;
   features: string[];
-  layout_data?: GenericObject; // Sửa lỗi any
-  status: string;
-  created_at: string;
-  updated_at: string;
+  layoutType?: LayoutType;
+  status: HallStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface Movie {
+export interface CreateHallRequest {
+  cinemaId: string;
+  name: string;
+  type: HallType;
+  screenType?: string;
+  soundSystem?: string;
+  features?: string[];
+  layoutType?: LayoutType;
+}
+
+export interface UpdateHallRequest {
+  name?: string;
+  type?: HallType;
+  screenType?: string;
+  soundSystem?: string;
+  features?: string[];
+}
+
+// Movie types
+export type AgeRating = 'P' | 'K' | 'T13' | 'T16' | 'T18' | 'C';
+export type LanguageType = 'ORIGINAL' | 'SUBTITLE' | 'DUBBED';
+export type MovieStatus = 'now_showing' | 'upcoming';
+
+export interface Genre {
+  id: string;
+  name: string;
+}
+
+export interface MovieCast {
+  name: string;
+  profileUrl?: string;
+}
+
+export interface MovieSummary {
   id: string;
   title: string;
-  description?: string;
-  posterUrl?: string;
+  posterUrl: string;
+  backdropUrl?: string;
+  runtime: number;
+  ageRating: AgeRating;
+  productionCountry: string;
+  languageType: LanguageType;
+}
+
+export interface Movie extends MovieSummary {
+  originalTitle?: string;
+  overview: string;
+  cast: MovieCast[];
   trailerUrl?: string;
-  genres: string[];
-  durationMinutes: number;
-  ageRating?: string;
+  originalLanguage: string;
+  spokenLanguages: string[];
+  genre: Genre[];
   releaseDate: string;
-  status: string;
+  director?: string;
+  status?: MovieStatus;
+}
+
+export interface CreateMovieDto {
+  title: string;
+  overview: string;
+  originalTitle?: string;
+  posterUrl: string;
+  trailerUrl?: string;
+  backdropUrl?: string;
+  runtime: number;
+  releaseDate: string;
+  ageRating: AgeRating;
+  originalLanguage: string;
+  spokenLanguages: string[];
+  languageType: LanguageType;
+  productionCountry: string;
+  director?: string;
+  cast: MovieCast[];
+  genreIds: string[];
 }
 
 export interface Showtime {
   id: string;
-  movie_id: string;
-  cinema_id: string;
-  hall_id: string;
-  start_time: string;
-  end_time: string;
-  format: string;
+  movieId: string;
+  movieReleaseId: string;
+  cinemaId: string;
+  hallId: string;
+  startTime: string;
+  endTime: string;
+  format: ShowtimeFormat;
   language: string;
   subtitles: string[];
-  base_price: number;
-  available_seats: number;
-  total_seats: number;
+  availableSeats: number;
+  totalSeats: number;
   status: ShowtimeStatus;
+  dayType: DayType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateShowtimeRequest {
+  movieId: string;
+  movieReleaseId: string;
+  cinemaId: string;
+  hallId: string;
+  startTime: string;
+  format: ShowtimeFormat;
+  language: string;
+  subtitles: string[];
+}
+
+export interface UpdateShowtimeRequest {
+  movieId?: string;
+  movieReleaseId?: string;
+  cinemaId?: string;
+  hallId?: string;
+  startTime?: string;
+  format?: ShowtimeFormat;
+  language?: string;
+  subtitles?: string[];
 }
 
 export interface Staff {

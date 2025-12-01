@@ -45,7 +45,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
-import type { Hall, Cinema } from '@/types';
+import type { Hall, Cinema, HallType, CreateHallRequest } from '@/types';
 
 import { mockHalls, mockCinemas } from '@/lib/mockData'; 
 
@@ -58,15 +58,14 @@ export default function HallsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedHall, setSelectedHall] = useState<Hall | null>(null);
-  const [formData, setFormData] = useState({
-    cinema_id: '',
+  const [formData, setFormData] = useState<Partial<CreateHallRequest>>({
+    cinemaId: '',
     name: '',
-    type: 'STANDARD',
-    capacity: 0,
-    rows: 0,
-    screen_type: '',
-    sound_system: '',
-    status: 'ACTIVE',
+    type: 'STANDARD' as HallType,
+    screenType: '',
+    soundSystem: '',
+    features: [],
+    layoutType: 'STANDARD',
   });
   const { toast } = useToast();
 
@@ -78,19 +77,19 @@ export default function HallsPage() {
     try {
       setLoading(true);
 
-      /*
-      const [hallsRes, cinemasRes] = await Promise.all([
-        api.get('/auditoriums'),
-        api.get('/cinemas', { params: { lat: 10.762622, lng: 106.660172 } }),
-      ]);
-      setHalls(hallsRes.data);
-      setCinemas(cinemasRes.data);
-      */
-      // ⭐️ REPLACE API CALLS WITH MOCK DATA ⭐️
-       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
-       setHalls(mockHalls);
-       setCinemas(mockCinemas);
-      // ⭐️ END OF REPLACEMENT ⭐️
+      // const cinemaId = 'c_hcm_001'; // Replace with selected cinema
+      // const [hallsRes, cinemasRes] = await Promise.all([
+      //   api.get(`/halls/cinema/${cinemaId}`),
+      //   api.get('/cinema'),
+      // ]);
+      // setHalls(hallsRes.data.data);
+      // setCinemas(cinemasRes.data.data);
+      
+      // ⭐️ PHẦN THAY THẾ: Dùng dữ liệu giả
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setHalls(mockHalls);
+      setCinemas(mockCinemas);
+      // ⭐️ KẾT THÚC PHẦN THAY THẾ
       
     } catch (error) {
       toast({
@@ -106,19 +105,16 @@ export default function HallsPage() {
   const handleSubmit = async () => {
     try {
       if (selectedHall) {
-        await api.put(`/auditoriums/${selectedHall.id}`, formData);
+        await api.patch(`/halls/hall/${selectedHall.id}`, formData);
         toast({ title: 'Success', description: 'Hall updated successfully' });
       } else {
-        await api.post('/auditoriums', {
-          ...formData,
-          seatLayout: [], // Empty seat layout initially
-        });
+        await api.post('/halls/hall', formData);
         toast({ title: 'Success', description: 'Hall created successfully' });
       }
       setDialogOpen(false);
       fetchData();
       resetForm();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to save hall',
@@ -130,11 +126,11 @@ export default function HallsPage() {
   const handleDelete = async () => {
     if (!selectedHall) return;
     try {
-      await api.delete(`/auditoriums/${selectedHall.id}`);
+      await api.delete(`/halls/hall/${selectedHall.id}`);
       toast({ title: 'Success', description: 'Hall deleted successfully' });
       setDeleteDialogOpen(false);
       fetchData();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to delete hall',
@@ -145,14 +141,13 @@ export default function HallsPage() {
 
   const resetForm = () => {
     setFormData({
-      cinema_id: '',
+      cinemaId: '',
       name: '',
       type: 'STANDARD',
-      capacity: 0,
-      rows: 0,
-      screen_type: '',
-      sound_system: '',
-      status: 'ACTIVE',
+      screenType: '',
+      soundSystem: '',
+      features: [],
+      layoutType: 'STANDARD',
     });
     setSelectedHall(null);
   };
@@ -160,14 +155,13 @@ export default function HallsPage() {
   const openEditDialog = (hall: Hall) => {
     setSelectedHall(hall);
     setFormData({
-      cinema_id: hall.cinema_id,
+      cinemaId: hall.cinemaId,
       name: hall.name,
       type: hall.type,
-      capacity: hall.capacity,
-      rows: hall.rows,
-      screen_type: hall.screen_type || '',
-      sound_system: hall.sound_system || '',
-      status: hall.status,
+      screenType: hall.screenType || '',
+      soundSystem: hall.soundSystem || '',
+      features: hall.features || [],
+      layoutType: hall.layoutType || 'STANDARD',
     });
     setDialogOpen(true);
   };
@@ -264,7 +258,7 @@ export default function HallsPage() {
                 </TableRow>
               ) : (
                 filteredHalls.map((hall) => {
-                  const cinema = cinemas.find((c) => c.id === hall.cinema_id);
+                  const cinema = cinemas.find((c) => c.id === hall.cinemaId);
                   return (
                     <TableRow key={hall.id}>
                       <TableCell>
@@ -287,9 +281,9 @@ export default function HallsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>{hall.screen_type || 'Standard'}</div>
+                          <div>{hall.screenType || 'Standard'}</div>
                           <div className="text-gray-500">
-                            {hall.sound_system || 'Standard Audio'}
+                            {hall.soundSystem || 'Standard Audio'}
                           </div>
                         </div>
                       </TableCell>
@@ -347,9 +341,9 @@ export default function HallsPage() {
             <div className="space-y-2">
               <Label htmlFor="cinema">Cinema *</Label>
               <Select
-                value={formData.cinema_id}
+                value={formData.cinemaId}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, cinema_id: value })
+                  setFormData({ ...formData, cinemaId: value })
                 }
               >
                 <SelectTrigger>
@@ -378,10 +372,10 @@ export default function HallsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">Type *</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) =>
+                  onValueChange={(value: HallType) =>
                     setFormData({ ...formData, type: value })
                   }
                 >
@@ -390,10 +384,9 @@ export default function HallsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="STANDARD">Standard</SelectItem>
-                    <SelectItem value="VIP">VIP</SelectItem>
+                    <SelectItem value="PREMIUM">Premium</SelectItem>
                     <SelectItem value="IMAX">IMAX</SelectItem>
                     <SelectItem value="FOUR_DX">4DX</SelectItem>
-                    <SelectItem value="PREMIUM">Premium</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -401,50 +394,23 @@ export default function HallsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="capacity">Capacity *</Label>
+                <Label htmlFor="screenType">Screen Type</Label>
                 <Input
-                  id="capacity"
-                  type="number"
-                  value={formData.capacity}
+                  id="screenType"
+                  value={formData.screenType}
                   onChange={(e) =>
-                    setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })
-                  }
-                  placeholder="150"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="rows">Number of Rows *</Label>
-                <Input
-                  id="rows"
-                  type="number"
-                  value={formData.rows}
-                  onChange={(e) =>
-                    setFormData({ ...formData, rows: parseInt(e.target.value) || 0 })
-                  }
-                  placeholder="10"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="screen_type">Screen Type</Label>
-                <Input
-                  id="screen_type"
-                  value={formData.screen_type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, screen_type: e.target.value })
+                    setFormData({ ...formData, screenType: e.target.value })
                   }
                   placeholder="4K Digital"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sound_system">Sound System</Label>
+                <Label htmlFor="soundSystem">Sound System</Label>
                 <Input
-                  id="sound_system"
-                  value={formData.sound_system}
+                  id="soundSystem"
+                  value={formData.soundSystem}
                   onChange={(e) =>
-                    setFormData({ ...formData, sound_system: e.target.value })
+                    setFormData({ ...formData, soundSystem: e.target.value })
                   }
                   placeholder="Dolby Atmos"
                 />
@@ -452,22 +418,33 @@ export default function HallsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="layoutType">Layout Type</Label>
               <Select
-                value={formData.status}
+                value={formData.layoutType}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
+                  setFormData({ ...formData, layoutType: value as 'STANDARD' | 'DUAL_AISLE' | 'STADIUM' })
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                  <SelectItem value="CLOSED">Closed</SelectItem>
+                  <SelectItem value="STANDARD">Standard</SelectItem>
+                  <SelectItem value="DUAL_AISLE">Dual Aisle</SelectItem>
+                  <SelectItem value="STADIUM">Stadium</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Features (Optional)</Label>
+              <Input
+                value={(formData.features || []).join(', ')}
+                onChange={(e) =>
+                  setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()).filter(Boolean) })
+                }
+                placeholder="3D, ATMOS, Wheelchair access (comma-separated)"
+              />
             </div>
           </div>
           <DialogFooter>
