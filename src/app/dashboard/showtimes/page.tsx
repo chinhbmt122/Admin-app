@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Calendar as CalendarIcon, Clock, Trash2 } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Clock, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -46,6 +46,7 @@ export default function ShowtimesPage() {
   const [halls, setHalls] = useState<Hall[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingShowtime, setEditingShowtime] = useState<Showtime | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [formData, setFormData] = useState<CreateShowtimeRequest>({
     movieId: '',
@@ -61,6 +62,7 @@ export default function ShowtimesPage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const fetchData = async () => {
@@ -122,18 +124,56 @@ export default function ShowtimesPage() {
 
   const handleSubmit = async () => {
     try {
-      await api.post('/showtimes/showtime', formData);
-      toast({ title: 'Success', description: 'Showtime created successfully' });
+      if (editingShowtime) {
+        // Update existing showtime
+        await api.patch(`/showtimes/showtime/${editingShowtime.id}`, formData);
+        toast({ title: 'Success', description: 'Showtime updated successfully' });
+      } else {
+        // Create new showtime
+        await api.post('/showtimes/showtime', formData);
+        toast({ title: 'Success', description: 'Showtime created successfully' });
+      }
       setDialogOpen(false);
       fetchData();
       resetForm();
     } catch {
       toast({
         title: 'Error',
-        description: 'Failed to create showtime',
+        description: editingShowtime ? 'Failed to update showtime' : 'Failed to create showtime',
         variant: 'destructive',
       });
     }
+  };
+
+  const handleEdit = (showtime: Showtime) => {
+    setEditingShowtime(showtime);
+    
+    // Normalize language code - ensure it matches Select options
+    let normalizedLanguage = showtime.language.toLowerCase();
+    // Map common variations to standard codes
+    const languageMap: Record<string, string> = {
+      'vietnamese': 'vi',
+      'english': 'en',
+      'korean': 'ko',
+      'chinese': 'zh',
+      'japanese': 'ja',
+      'thai': 'th'
+    };
+    if (languageMap[normalizedLanguage]) {
+      normalizedLanguage = languageMap[normalizedLanguage];
+    }
+    
+    setFormData({
+      movieId: showtime.movieId,
+      movieReleaseId: showtime.movieReleaseId,
+      cinemaId: showtime.cinemaId,
+      hallId: showtime.hallId,
+      startTime: showtime.startTime.slice(0, 16), // Format for datetime-local input
+      format: showtime.format, // Already in correct format (TWO_D, THREE_D, IMAX, FOUR_DX)
+      language: normalizedLanguage,
+      subtitles: showtime.subtitles, // Keep as array
+    });
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -151,6 +191,7 @@ export default function ShowtimesPage() {
   };
 
   const resetForm = () => {
+    setEditingShowtime(null);
     setFormData({
       movieId: '',
       movieReleaseId: '',
@@ -273,14 +314,24 @@ export default function ShowtimesPage() {
                                     {cinema?.name}
                                   </div>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleDelete(showtime.id)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEdit(showtime)}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleDelete(showtime.id)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
 
                               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -300,9 +351,30 @@ export default function ShowtimesPage() {
                                 {showtime.availableSeats}/{showtime.totalSeats} seats available
                               </div>
 
-                              <div className="flex gap-2">
+                              <div className="flex flex-wrap gap-2">
                                 <Badge variant="outline">{showtime.format}</Badge>
-                                <Badge variant="outline">{showtime.language}</Badge>
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  🎬 {{
+                                    vi: 'Tiếng Việt',
+                                    en: 'English',
+                                    ko: 'Korean',
+                                    zh: 'Chinese',
+                                    ja: 'Japanese',
+                                    th: 'Thai'
+                                  }[showtime.language] || showtime.language}
+                                </Badge>
+                                {showtime.subtitles.length > 0 && (
+                                  <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                    📝 {showtime.subtitles.map(s => ({
+                                      vi: 'Phụ đề Việt',
+                                      en: 'Phụ đề Anh',
+                                      ko: 'Phụ đề Hàn',
+                                      zh: 'Phụ đề Trung',
+                                      ja: 'Phụ đề Nhật',
+                                      th: 'Phụ đề Thái'
+                                    }[s] || s)).join(', ')}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </CardContent>
@@ -321,9 +393,9 @@ export default function ShowtimesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Showtime</DialogTitle>
+            <DialogTitle>{editingShowtime ? 'Edit Showtime' : 'Add New Showtime'}</DialogTitle>
             <DialogDescription>
-              Schedule a new movie showtime
+              {editingShowtime ? 'Update showtime details' : 'Schedule a new movie showtime'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -435,7 +507,7 @@ export default function ShowtimesPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select format" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="TWO_D">2D</SelectItem>
@@ -454,11 +526,15 @@ export default function ShowtimesPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="vi">Vietnamese</SelectItem>
                     <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="ko">Korean</SelectItem>
+                    <SelectItem value="zh">Chinese</SelectItem>
+                    <SelectItem value="ja">Japanese</SelectItem>
+                    <SelectItem value="th">Thai</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -497,7 +573,7 @@ export default function ShowtimesPage() {
               onClick={handleSubmit}
               className="bg-gradient-to-r from-purple-600 to-pink-600"
             >
-              Create Showtime
+              {editingShowtime ? 'Update Showtime' : 'Create Showtime'}
             </Button>
           </DialogFooter>
         </DialogContent>
