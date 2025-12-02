@@ -52,19 +52,101 @@ interface CreateMovieReleaseDto {
 }
 
 const mockReleases: MovieRelease[] = [
+  // Mission: Impossible - Dead Reckoning Part One
   {
     id: 'mr_001',
     movieId: 'm_001',
     startDate: '2025-01-15',
     endDate: '2025-03-15',
-    note: 'Phát hành dịp Tết Nguyên Đán 2025',
+    note: 'Phát hành dịp Tết Nguyên Đán 2025 - Bom tấn hành động đỉnh cao từ Tom Cruise',
   },
+  // Oppenheimer
   {
     id: 'mr_002',
     movieId: 'm_002',
     startDate: '2025-02-01',
     endDate: '2025-04-01',
-    note: 'Phát hành đầu năm',
+    note: 'Phát hành đầu năm - Tác phẩm được đề cử Oscar từ Christopher Nolan',
+  },
+  // Dune: Part Two
+  {
+    id: 'mr_003',
+    movieId: 'm_003',
+    startDate: '2024-03-01',
+    endDate: '2024-05-15',
+    note: 'Phát hành tháng 3 - Phần 2 của siêu phẩm Sci-Fi đoạt giải Oscar',
+  },
+  // Barbie
+  {
+    id: 'mr_004',
+    movieId: 'm_004',
+    startDate: '2023-07-21',
+    endDate: '2023-09-30',
+    note: 'Summer blockbuster 2023 - Hiện tượng văn hóa đại chúng toàn cầu',
+  },
+  // The Marvels
+  {
+    id: 'mr_005',
+    movieId: 'm_005',
+    startDate: '2023-11-10',
+    endDate: '2024-01-15',
+    note: 'Phát hành cuối năm 2023 - Marvel Cinematic Universe Phase 5',
+  },
+  // Wonka
+  {
+    id: 'mr_006',
+    movieId: 'm_006',
+    startDate: '2023-12-15',
+    endDate: '2024-02-28',
+    note: 'Phát hành mùa lễ hội - Câu chuyện nguồn gốc của Willy Wonka',
+  },
+  // Mission: Impossible - Extended Release
+  {
+    id: 'mr_007',
+    movieId: 'm_001',
+    startDate: '2025-04-01',
+    endDate: '2025-06-15',
+    note: 'Chiếu lại theo yêu cầu khán giả - Phiên bản IMAX đặc biệt',
+  },
+  // Oppenheimer - Re-release
+  {
+    id: 'mr_008',
+    movieId: 'm_002',
+    startDate: '2025-05-01',
+    endDate: '2025-07-01',
+    note: 'Tái chiếu sau giải Oscar - Phiên bản 70mm IMAX độc quyền',
+  },
+  // Dune: Part Two - Fan Event
+  {
+    id: 'mr_009',
+    movieId: 'm_003',
+    startDate: '2024-06-01',
+    endDate: '2024-07-15',
+    note: 'Sự kiện đặc biệt cho fan - Bao gồm Q&A với đạo diễn Denis Villeneuve',
+  },
+  // Barbie - Anniversary Screening
+  {
+    id: 'mr_010',
+    movieId: 'm_004',
+    startDate: '2024-07-21',
+    endDate: '2024-08-31',
+    note: 'Kỷ niệm 1 năm ra mắt - Buổi chiếu đặc biệt với nội dung hậu trường',
+  },
+  // The Marvels - Director\'s Cut
+  {
+    id: 'mr_011',
+    movieId: 'm_005',
+    startDate: '2024-11-10',
+    endDate: '2024-12-25',
+    note: 'Director\'s Cut - Phiên bản mở rộng với 25 phút cảnh quay mới',
+  },
+  // Wonka - Holiday Special
+  {
+    id: 'mr_012',
+    movieId: 'm_006',
+    startDate: '2024-12-15',
+    endDate: '2025-01-31',
+    note: 'Đặc biệt mùa lễ hội 2024 - Sing-along version cho gia đình',
   },
 ];
 

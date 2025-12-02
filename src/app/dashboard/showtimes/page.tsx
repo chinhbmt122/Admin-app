@@ -425,14 +425,33 @@ export default function ShowtimesPage() {
 
             <div className="space-y-2">
               <Label htmlFor="movieReleaseId">Movie Release ID *</Label>
-              <Input
-                id="movieReleaseId"
+              <Select
                 value={formData.movieReleaseId}
-                onChange={(e) =>
-                  setFormData({ ...formData, movieReleaseId: e.target.value })
+                onValueChange={(value) =>
+                  setFormData({ ...formData, movieReleaseId: value })
                 }
-                placeholder="Enter movie release ID"
-              />
+                disabled={!formData.movieId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select movie release" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formData.movieId && (() => {
+                    const selectedMovie = movies.find(m => m.id === formData.movieId);
+                    // Lấy các release IDs từ showtimes của movie này
+                    const releaseIds = [...new Set(
+                      mockShowtimes
+                        .filter(st => st.movieId === formData.movieId)
+                        .map(st => st.movieReleaseId)
+                    )];
+                    return releaseIds.map((releaseId) => (
+                      <SelectItem key={releaseId} value={releaseId}>
+                        {selectedMovie?.title} - {releaseId}
+                      </SelectItem>
+                    ));
+                  })()}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

@@ -1,4 +1,3 @@
-// src/app/(dashboard)/page.tsx (Updated)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,12 +5,14 @@ import {
   Building2, 
   Film, 
   Calendar, 
-  Users, 
   TrendingUp, 
   DollarSign,
   Ticket,
   Star,
-  AlertCircle 
+  MessageSquare,
+  Plus,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import {
   Card,
@@ -20,250 +21,374 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import api from '@/lib/api';
-// BƯỚC 1: IMPORT CÁC KIỂU DỮ LIỆU THỰC TẾ
-// STEP 1: IMPORT ACTUAL DATA TYPES
-import { Cinema, Movie, Showtime } from '@/types'; 
-
-
-import { mockCinemas, mockMovies, mockShowtimes } from '@/lib/mockData';
-
-
-
-interface RecentActivity {
-  id: number;
-  type: 'showtime' | 'booking' | 'cinema' | 'movie';
-  message: string;
-  time: string;
-}
-
-interface TopPerformingMovie {
-  title: string;
-  sales: number;
-  rating: number;
-}
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
+import {
+  mockDashboardStats,
+  mockRevenue,
+  mockBookings,
+  mockReviews,
+  getTopMoviesByBookings,
+  getTopCinemasByRevenue,
+} from '@/lib/dashboardMockData';
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({
-    totalCinemas: 0,
-    totalMovies: 0,
-    todayShowtimes: 0,
-    totalRevenue: 0,
-    activeStaff: 0,
-    occupancyRate: 0,
-  });
   const [loading, setLoading] = useState(true);
-  
-  // KIỂM TRA LẠI: Đã sử dụng kiểu RecentActivity[] thay vì any[]
-  // CHECK: Using RecentActivity[] instead of any[]
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [topMovies, setTopMovies] = useState<TopPerformingMovie[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null); 
-        
-        /*
-        // BƯỚC 2: SỬ DỤNG CÁC KIỂU THỰC TẾ CHO RESPONSE
-        // STEP 2: USE ACTUAL TYPES FOR API RESPONSE
-        const [cinemasRes, moviesRes, showtimesRes] = await Promise.all([
-          api.get<Cinema[]>('/cinemas', { params: { lat: 10.762622, lng: 106.660172 } }),
-          api.get<Movie[]>('/movies'),
-          api.get<Showtime[]>('/showtimes'),
-        ]);
-        */
-
-        // ⭐️ REPLACE API CALLS WITH MOCK DATA ⭐️
-        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
-
-        const cinemasData: Cinema[] = mockCinemas;
-        const moviesData: Movie[] = mockMovies;
-        const showtimesData: Showtime[] = mockShowtimes;
-        // ⭐️ END OF REPLACEMENT ⭐️
-
-        setStats({
-          
-          // Lúc này, Typecript đã biết cinemasRes.data là mảng các Cinema object
-          // At this point, Typecript knows cinemasRes.data is an array of Cinema objects
-
-          /*
-          totalCinemas: cinemasRes.data.length,
-          totalMovies: moviesRes.data.length,
-          todayShowtimes: showtimesRes.data.length,
-          totalRevenue: 125000000, 
-          activeStaff: 48,
-          occupancyRate: 68.5,
-          */
-
-          // SỬ DỤNG DỮ LIỆU MOCK THAY THẾ
-          totalCinemas: cinemasData.length,
-          totalMovies: moviesData.length,
-          todayShowtimes: showtimesData.length,
-          // ... other mock stats
-          totalRevenue: 125000000, 
-          activeStaff: 48,
-          occupancyRate: 68.5,
-        });
-
-        // Mock data for activities (using the new interface)
-        setRecentActivities([
-          { id: 1, type: 'showtime', message: 'New showtime created for Avatar 2', time: '5 minutes ago' },
-          { id: 2, type: 'booking', message: '12 tickets booked for The Batman', time: '15 minutes ago' },
-          { id: 3, type: 'cinema', message: 'Cinestar Hai Bà Trưng updated', time: '1 hour ago' },
-          { id: 4, type: 'movie', message: 'New movie "Oppenheimer" added', time: '2 hours ago' },
-        ]);
-
-        // Mock data for top movies (using the new interface)
-        setTopMovies([
-          { title: 'Avatar: The Way of Water', sales: 1250, rating: 4.8 },
-          { title: 'The Batman', sales: 980, rating: 4.6 },
-          { title: 'Everything Everywhere All at Once', sales: 875, rating: 4.9 },
-          { title: 'Spider-Man: No Way Home', sales: 756, rating: 4.7 },
-        ]);
-
-      } catch (err) {
-        console.error('Failed to fetch dashboard data', err);
-        setError('Could not load dashboard data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
+    // Simulate API loading
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
   }, []);
 
+  const stats = mockDashboardStats;
+  const revenueData = mockRevenue;
+  const recentBookings = mockBookings.slice(0, 5);
+  const recentReviews = mockReviews.slice(0, 5);
+  const topMovies = getTopMoviesByBookings();
+  const topCinemas = getTopCinemasByRevenue();
+
+  // Prepare chart data
+  const revenueChartData = revenueData.map(day => ({
+    date: new Date(day.date).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }),
+    revenue: day.revenue / 1000000, // Convert to millions
+    bookings: day.bookings,
+  }));
+
+  const movieChartData = topMovies.map(movie => ({
+    name: movie.title.length > 15 ? movie.title.substring(0, 15) + '...' : movie.title,
+    value: movie.totalBookings,
+  }));
+
+  const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+
   const statCards = [
-    { title: 'Total Cinemas', value: stats.totalCinemas, icon: Building2, change: '+2 from last month', changeType: 'positive', color: 'from-blue-500 to-blue-600' },
-    { title: 'Active Movies', value: stats.totalMovies, icon: Film, change: '+5 new releases', changeType: 'positive', color: 'from-purple-500 to-purple-600' },
-    { title: "Today's Showtimes", value: stats.todayShowtimes, icon: Calendar, change: '24 scheduled', changeType: 'neutral', color: 'from-green-500 to-green-600' },
-    { title: 'Occupancy Rate', value: `${stats.occupancyRate}%`, icon: TrendingUp, change: '+5.2% from yesterday', changeType: 'positive', color: 'from-orange-500 to-orange-600' },
-    { title: 'Revenue (Today)', value: `${(stats.totalRevenue / 1000000).toFixed(1)}M VNĐ`, icon: DollarSign, change: '+12% from yesterday', changeType: 'positive', color: 'from-pink-500 to-pink-600' },
-    { title: 'Active Staff', value: stats.activeStaff, icon: Users, change: '8 on shift now', changeType: 'neutral', color: 'from-indigo-500 to-indigo-600' },
+    { 
+      title: 'Total Movies', 
+      value: stats.totalMovies, 
+      icon: Film, 
+      change: '+12.5%', 
+      changeType: 'positive' as const,
+      color: 'from-purple-500 to-purple-600',
+      href: '/dashboard/movies'
+    },
+    { 
+      title: 'Total Cinemas', 
+      value: stats.totalCinemas, 
+      icon: Building2, 
+      change: '+8.2%', 
+      changeType: 'positive' as const,
+      color: 'from-blue-500 to-blue-600',
+      href: '/dashboard/cinemas'
+    },
+    { 
+      title: "Today's Showtimes", 
+      value: stats.todayShowtimes, 
+      icon: Calendar, 
+      change: 'Active today', 
+      changeType: 'neutral' as const,
+      color: 'from-emerald-500 to-emerald-600',
+      href: '/dashboard/showtimes'
+    },
+    { 
+      title: 'Week Revenue', 
+      value: `₫${(stats.weekRevenue / 1000000).toFixed(1)}M`, 
+      icon: DollarSign, 
+      change: '+18.7%', 
+      changeType: 'positive' as const,
+      color: 'from-pink-500 to-pink-600',
+      href: '/dashboard/reports'
+    },
+    { 
+      title: 'Total Bookings', 
+      value: stats.totalBookings, 
+      icon: Ticket, 
+      change: '+24.3%', 
+      changeType: 'positive' as const,
+      color: 'from-amber-500 to-amber-600',
+      href: '/dashboard/reservations'
+    },
+    { 
+      title: 'Average Rating', 
+      value: stats.averageRating.toFixed(1), 
+      icon: Star, 
+      change: 'Excellent', 
+      changeType: 'positive' as const,
+      color: 'from-yellow-500 to-yellow-600',
+      href: '/dashboard/reviews'
+    },
   ];
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-96 bg-red-50 border border-red-200 rounded-lg">
-        <div className="text-center text-red-600">
-          <AlertCircle className="h-12 w-12 mx-auto mb-2" />
-          <h2 className="text-lg font-semibold">Something went wrong</h2>
-          <p className="mt-2">{error}</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600"></div>
+          <p className="mt-4 text-gray-600 font-medium">Loading Dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back, Admin! 👋</h1>
-        <p className="text-purple-100">
-          Here is what is happening with your cinema business today.
-        </p>
+      <div className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 rounded-2xl p-8 text-white shadow-xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+        <div className="relative z-10">
+          <h1 className="text-4xl font-bold mb-2">Welcome back, Admin! 👋</h1>
+          <p className="text-purple-100 text-lg">
+            Here&apos;s an overview of your cinema business today - {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((stat) => {
           const Icon = stat.icon;
+          const isPositive = stat.changeType === 'positive';
           return (
-            <Card key={stat.title} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    {stat.title}
-                  </CardTitle>
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.color}`}>
-                    <Icon className="h-5 w-5 text-white" />
+            <Link key={stat.title} href={stat.href}>
+              <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-2 hover:border-purple-200">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-gray-600">
+                      {stat.title}
+                    </CardTitle>
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                      <Icon className="h-5 w-5 text-white" />
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold mb-2">{stat.value}</div>
-                <p className={`text-sm ${
-                  stat.changeType === 'positive' 
-                    ? 'text-green-600' 
-                    : stat.changeType === 'negative'
-                    ? 'text-red-600'
-                    : 'text-gray-600'
-                }`}>
-                  {stat.change}
-                </p>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold mb-2">{stat.value}</div>
+                  <div className="flex items-center gap-1">
+                    {stat.changeType !== 'neutral' && (
+                      isPositive ? (
+                        <ArrowUpRight className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <ArrowDownRight className="h-4 w-4 text-red-600" />
+                      )
+                    )}
+                    <p className={`text-sm font-medium ${
+                      stat.changeType === 'positive' 
+                        ? 'text-green-600' 
+                        : stat.changeType === 'negative'
+                        ? 'text-red-600'
+                        : 'text-gray-600'
+                    }`}>
+                      {stat.change}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           );
         })}
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activities */}
-        <Card>
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Bar Chart */}
+        <Card className="lg:col-span-2 shadow-lg">
           <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-            <CardDescription>Latest updates from your system</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              Revenue Overview (Last 7 Days)
+            </CardTitle>
+            <CardDescription>Daily revenue and booking trends</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="p-2 rounded-full bg-purple-100">
-                    {activity.type === 'showtime' && <Calendar className="h-4 w-4 text-purple-600" />}
-                    {activity.type === 'booking' && <Ticket className="h-4 w-4 text-purple-600" />}
-                    {activity.type === 'cinema' && <Building2 className="h-4 w-4 text-purple-600" />}
-                    {activity.type === 'movie' && <Film className="h-4 w-4 text-purple-600" />}
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={revenueChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
+                <YAxis stroke="#6b7280" fontSize={12} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name === 'revenue') return [`₫${value.toFixed(1)}M`, 'Revenue'];
+                    return [value, 'Bookings'];
+                  }}
+                />
+                <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[8, 8, 0, 0]} />
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#ec4899" stopOpacity={1}/>
+                  </linearGradient>
+                </defs>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Top Movies Pie Chart */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Film className="h-5 w-5 text-pink-600" />
+              Top 5 Movies
+            </CardTitle>
+            <CardDescription>By total bookings today</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={movieChartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ percent }) => percent ? `${(percent * 100).toFixed(0)}%` : ''}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {movieChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    borderRadius: '8px',
+                    border: '1px solid #e5e7eb'
+                  }}
+                  formatter={(value: number) => [`${value} seats`, 'Bookings']}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value) => (
+                    <span className="text-xs">{value}</span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Three Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Movies List */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-amber-500" />
+                Top Movies
+              </span>
+              <Link href="/dashboard/movies">
+                <Button variant="ghost" size="sm">View All</Button>
+              </Link>
+            </CardTitle>
+            <CardDescription>Highest performing movies</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {topMovies.map((movie, index) => (
+                <div key={movie.movieId} className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{movie.title}</p>
+                      <p className="text-xs text-gray-500">{movie.totalBookings} bookings</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                  </div>
+                  <p className="text-sm font-bold text-emerald-600">₫{(movie.totalRevenue / 1000000).toFixed(1)}M</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Top Performing Movies */}
-        <Card>
+        {/* Top Cinemas List */}
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Top Performing Movies</CardTitle>
-            <CardDescription>Based on ticket sales this week</CardDescription>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-blue-500" />
+                Top Cinemas
+              </span>
+              <Link href="/dashboard/cinemas">
+                <Button variant="ghost" size="sm">View All</Button>
+              </Link>
+            </CardTitle>
+            <CardDescription>Best performing locations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {topMovies.map((movie, index) => (
-                <div key={movie.title} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-400">#{index + 1}</span>
-                      <div>
-                        <p className="font-medium">{movie.title}</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span className="text-xs text-gray-600">{movie.rating}</span>
-                        </div>
-                      </div>
+            <div className="space-y-3">
+              {topCinemas.map((cinema, index) => (
+                <div key={cinema.cinemaId} className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{cinema.name}</p>
+                      <p className="text-xs text-gray-500">{cinema.location}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{movie.sales}</p>
-                    <p className="text-xs text-gray-500">tickets</p>
+                  <p className="text-sm font-bold text-emerald-600">₫{(cinema.totalRevenue / 1000000).toFixed(1)}M</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Reviews */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-green-500" />
+                Recent Reviews
+              </span>
+              <Link href="/dashboard/reviews">
+                <Button variant="ghost" size="sm">View All</Button>
+              </Link>
+            </CardTitle>
+            <CardDescription>Latest customer feedback</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentReviews.map((review) => (
+                <div key={review.id} className="p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-semibold text-sm">{review.customerName}</p>
+                    <div className="flex items-center gap-1">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-xs text-gray-600 line-clamp-2">{review.comment}</p>
+                  <p className="text-xs text-gray-400 mt-1">{review.movieTitle}</p>
                 </div>
               ))}
             </div>
@@ -271,19 +396,82 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Revenue Chart Placeholder */}
-      <Card>
+      {/* Recent Bookings */}
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Revenue Overview</CardTitle>
-          <CardDescription>Monthly revenue for the past 6 months</CardDescription>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Ticket className="h-5 w-5 text-purple-600" />
+              Recent Bookings
+            </span>
+            <Link href="/dashboard/reservations">
+              <Button variant="ghost" size="sm">View All</Button>
+            </Link>
+          </CardTitle>
+          <CardDescription>Latest ticket reservations</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
-            <div className="text-center text-gray-400">
-              <TrendingUp className="h-12 w-12 mx-auto mb-2" />
-              <p>Chart visualization would go here</p>
-              <p className="text-sm mt-1">Integrate with recharts or similar library</p>
-            </div>
+          <div className="space-y-3">
+            {recentBookings.map((booking) => (
+              <div key={booking.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-md transition-shadow">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <p className="font-semibold">{booking.movieTitle}</p>
+                    <Badge variant={
+                      booking.status === 'CONFIRMED' ? 'default' :
+                      booking.status === 'PENDING' ? 'secondary' :
+                      'destructive'
+                    }>
+                      {booking.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">{booking.cinemaName} • {booking.customerName}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(booking.bookingTime).toLocaleString('vi-VN')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-lg text-emerald-600">₫{booking.totalPrice.toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">{booking.seats} seats</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card className="shadow-lg bg-gradient-to-br from-slate-50 to-slate-100">
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Frequently used operations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link href="/dashboard/movies">
+              <Button variant="outline" className="w-full h-24 flex flex-col gap-2 hover:bg-purple-50 hover:border-purple-300 transition-all">
+                <Plus className="h-6 w-6" />
+                <span>Add Movie</span>
+              </Button>
+            </Link>
+            <Link href="/dashboard/showtimes">
+              <Button variant="outline" className="w-full h-24 flex flex-col gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all">
+                <Plus className="h-6 w-6" />
+                <span>Add Showtime</span>
+              </Button>
+            </Link>
+            <Link href="/dashboard/cinemas">
+              <Button variant="outline" className="w-full h-24 flex flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-300 transition-all">
+                <Plus className="h-6 w-6" />
+                <span>Add Cinema</span>
+              </Button>
+            </Link>
+            <Link href="/dashboard/reports">
+              <Button variant="outline" className="w-full h-24 flex flex-col gap-2 hover:bg-pink-50 hover:border-pink-300 transition-all">
+                <TrendingUp className="h-6 w-6" />
+                <span>View Reports</span>
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
