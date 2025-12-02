@@ -20,6 +20,7 @@ import {
   Zap,
   Wrench,
   Eye,
+  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +38,7 @@ const menuItems = [
   { icon: Calendar, label: 'Showtimes', href: '/dashboard/showtimes' },
   { icon: Eye, label: 'Showtime Seats', href: '/dashboard/showtime-seats' },
   { icon: Zap, label: 'Batch Showtimes', href: '/dashboard/batch-showtimes' },
+  { icon: DollarSign, label: 'Ticket Pricing', href: '/dashboard/ticket-pricing' },
   { icon: Ticket, label: 'Reservations', href: '/dashboard/reservations' },
   { icon: MessageSquare, label: 'Reviews', href: '/dashboard/reviews' },
   { icon: Users, label: 'Staff', href: '/dashboard/staff' },
