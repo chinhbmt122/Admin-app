@@ -18,6 +18,8 @@ import {
   Menu,
   Tag,
   Zap,
+  Wrench,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,10 +30,12 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: Building2, label: 'Cinemas', href: '/dashboard/cinemas' },
   { icon: DoorOpen, label: 'Halls', href: '/dashboard/halls' },
+  { icon: Wrench, label: 'Seat Status', href: '/dashboard/seat-status' },
   { icon: Film, label: 'Movies', href: '/dashboard/movies' },
   { icon: Tag, label: 'Genres', href: '/dashboard/genres' },
   { icon: Calendar, label: 'Movie Releases', href: '/dashboard/movie-releases' },
   { icon: Calendar, label: 'Showtimes', href: '/dashboard/showtimes' },
+  { icon: Eye, label: 'Showtime Seats', href: '/dashboard/showtime-seats' },
   { icon: Zap, label: 'Batch Showtimes', href: '/dashboard/batch-showtimes' },
   { icon: Ticket, label: 'Reservations', href: '/dashboard/reservations' },
   { icon: MessageSquare, label: 'Reviews', href: '/dashboard/reviews' },
