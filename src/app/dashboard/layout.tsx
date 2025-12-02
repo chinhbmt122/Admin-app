@@ -42,7 +42,7 @@ const menuItems = [
   { icon: Ticket, label: 'Reservations', href: '/dashboard/reservations', disabled: true },
   { icon: MessageSquare, label: 'Reviews', href: '/dashboard/reviews', disabled: true },
   { icon: Users, label: 'Staff', href: '/dashboard/staff', disabled: true },
-  { icon: BarChart3, label: 'Reports', href: '/dashboard/reports', disabled: true },
+  { icon: BarChart3, label: 'Reports', href: '/dashboard/reports', disabled: false },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings', disabled: false },
 ];
 
