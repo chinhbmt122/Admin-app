@@ -16,6 +16,8 @@ import {
   Settings,
   LogOut,
   Menu,
+  Tag,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,7 +29,10 @@ const menuItems = [
   { icon: Building2, label: 'Cinemas', href: '/dashboard/cinemas' },
   { icon: DoorOpen, label: 'Halls', href: '/dashboard/halls' },
   { icon: Film, label: 'Movies', href: '/dashboard/movies' },
+  { icon: Tag, label: 'Genres', href: '/dashboard/genres' },
+  { icon: Calendar, label: 'Movie Releases', href: '/dashboard/movie-releases' },
   { icon: Calendar, label: 'Showtimes', href: '/dashboard/showtimes' },
+  { icon: Zap, label: 'Batch Showtimes', href: '/dashboard/batch-showtimes' },
   { icon: Ticket, label: 'Reservations', href: '/dashboard/reservations' },
   { icon: MessageSquare, label: 'Reviews', href: '/dashboard/reviews' },
   { icon: Users, label: 'Staff', href: '/dashboard/staff' },
