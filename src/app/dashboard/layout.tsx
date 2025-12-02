@@ -28,22 +28,22 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Building2, label: 'Cinemas', href: '/dashboard/cinemas' },
-  { icon: DoorOpen, label: 'Halls', href: '/dashboard/halls' },
-  { icon: Wrench, label: 'Seat Status', href: '/dashboard/seat-status' },
-  { icon: Film, label: 'Movies', href: '/dashboard/movies' },
-  { icon: Tag, label: 'Genres', href: '/dashboard/genres' },
-  { icon: Calendar, label: 'Movie Releases', href: '/dashboard/movie-releases' },
-  { icon: Calendar, label: 'Showtimes', href: '/dashboard/showtimes' },
-  { icon: Eye, label: 'Showtime Seats', href: '/dashboard/showtime-seats' },
-  { icon: Zap, label: 'Batch Showtimes', href: '/dashboard/batch-showtimes' },
-  { icon: DollarSign, label: 'Ticket Pricing', href: '/dashboard/ticket-pricing' },
-  { icon: Ticket, label: 'Reservations', href: '/dashboard/reservations' },
-  { icon: MessageSquare, label: 'Reviews', href: '/dashboard/reviews' },
-  { icon: Users, label: 'Staff', href: '/dashboard/staff' },
-  { icon: BarChart3, label: 'Reports', href: '/dashboard/reports' },
-  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', disabled: false },
+  { icon: Building2, label: 'Cinemas', href: '/dashboard/cinemas', disabled: false },
+  { icon: DoorOpen, label: 'Halls', href: '/dashboard/halls', disabled: false },
+  { icon: Wrench, label: 'Seat Status', href: '/dashboard/seat-status', disabled: false },
+  { icon: Film, label: 'Movies', href: '/dashboard/movies', disabled: false },
+  { icon: Tag, label: 'Genres', href: '/dashboard/genres', disabled: false },
+  { icon: Calendar, label: 'Movie Releases', href: '/dashboard/movie-releases', disabled: false },
+  { icon: Calendar, label: 'Showtimes', href: '/dashboard/showtimes', disabled: false },
+  { icon: Eye, label: 'Showtime Seats', href: '/dashboard/showtime-seats', disabled: false },
+  { icon: Zap, label: 'Batch Showtimes', href: '/dashboard/batch-showtimes', disabled: false },
+  { icon: DollarSign, label: 'Ticket Pricing', href: '/dashboard/ticket-pricing', disabled: false },
+  { icon: Ticket, label: 'Reservations', href: '/dashboard/reservations', disabled: true },
+  { icon: MessageSquare, label: 'Reviews', href: '/dashboard/reviews', disabled: true },
+  { icon: Users, label: 'Staff', href: '/dashboard/staff', disabled: true },
+  { icon: BarChart3, label: 'Reports', href: '/dashboard/reports', disabled: true },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings', disabled: false },
 ];
 
 export default function DashboardLayout({
@@ -86,17 +86,32 @@ export default function DashboardLayout({
                               pathname.startsWith(item.href + '/');
               
               return (
-                <Link key={item.href} href={item.href}>
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                >
                   <div
                     className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-purple-50 hover:text-purple-600',
-                      isActive
+                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                      item.disabled 
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+                        : 'hover:bg-purple-50 hover:text-purple-600',
+                      isActive && !item.disabled
                         ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-600 shadow-sm'
-                        : 'text-gray-700'
+                        : !item.disabled && 'text-gray-700'
                     )}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
-                    {sidebarOpen && <span>{item.label}</span>}
+                    {sidebarOpen && (
+                      <div className="flex items-center gap-2 flex-1">
+                        <span>{item.label}</span>
+                        {item.disabled && (
+                          <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-semibold">
+                            NO API
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Link>
               );
