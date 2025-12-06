@@ -230,19 +230,19 @@
 - **Dùng cho màn hình:** Reservations Management (hiển thị bảng đơn đặt vé, lọc theo trạng thái/thanh toán/khách hàng/phim/rạp/ngày)
 - **Mô tả:** Lấy tất cả đơn đặt vé, có thể lọc theo nhiều tiêu chí
 - **Method:** GET
-- **⚠️ API này CHƠA có trong contract (openapi.yml)**
+- **⚠️ API này CHƯA có trong contract (openapi.yml)**
 
 ### 9.2. Xem chi tiết đơn đặt vé
 - **Dùng cho màn hình:** Reservations Management (dialog xem chi tiết đơn đặt vé)
 - **Mô tả:** Xem thông tin chi tiết 1 đơn (khách hàng, phim, rạp, ghế, thanh toán, lịch sử)
 - **Method:** GET
-- **⚠️ API này CHƠA có trong contract (openapi.yml)**
+- **⚠️ API này CHƯA có trong contract (openapi.yml)**
 
 ### 9.3. Cập nhật trạng thái đặt vé
 - **Dùng cho màn hình:** Reservations Management (nút xác nhận/hủy đơn đặt vé)
 - **Mô tả:** Xác nhận hoặc hủy đơn đặt vé
 - **Method:** PATCH
-- **⚠️ API này CHƠA có trong contract (openapi.yml)**
+- **⚠️ API này CHƯA có trong contract (openapi.yml)**
 
 ---
 
@@ -252,19 +252,19 @@
 - **Dùng cho màn hình:** Reports (biểu đồ cột/line chart doanh thu theo tháng/tuần/ngày)
 - **Mô tả:** Lấy doanh thu theo thời gian để vẽ biểu đồ
 - **Method:** GET
-- **⚠️ API này CHƠA có trong contract (openapi.yml)**
+- **⚠️ API này CHƯA có trong contract (openapi.yml)**
 
 ### 10.2. Báo cáo phân loại doanh thu
 - **Dùng cho màn hình:** Reports (biểu đồ tròn phân loại doanh thu)
 - **Mô tả:** Doanh thu chia theo nguồn (vé, đồ ăn, khác)
 - **Method:** GET
-- **⚠️ API này CHƠA có trong contract (openapi.yml)**
+- **⚠️ API này CHƯA có trong contract (openapi.yml)**
 
 ### 10.3. Top phim bán chạy
 - **Dùng cho màn hình:** Reports (bảng top phim có doanh thu cao nhất)
 - **Mô tả:** Danh sách phim bán chạy nhất theo doanh thu
 - **Method:** GET
-- **⚠️ API này CHƠA có trong contract (openapi.yml)**
+- **⚠️ API này CHƯA có trong contract (openapi.yml)**
 
 ### 10.4. Top rạp có doanh thu cao
 - **Dùng cho màn hình:** Reports (bảng top rạp có doanh thu cao nhất)
