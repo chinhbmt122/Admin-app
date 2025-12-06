@@ -48,6 +48,8 @@ export default function ShowtimesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingShowtime, setEditingShowtime] = useState<Showtime | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedCinemaId, setSelectedCinemaId] = useState<string>('all');
+  const [selectedMovieId, setSelectedMovieId] = useState<string>('all');
   const [formData, setFormData] = useState<CreateShowtimeRequest>({
     movieId: '',
     movieReleaseId: '',
@@ -63,17 +65,26 @@ export default function ShowtimesPage() {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, selectedCinemaId, selectedMovieId]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
 
       /*
+      // Build query params
+      const params: Record<string, string> = { 
+        date: format(selectedDate, 'yyyy-MM-dd') 
+      };
+      if (selectedCinemaId !== 'all') {
+        params.cinemaId = selectedCinemaId;
+      }
+      if (selectedMovieId !== 'all') {
+        params.movieId = selectedMovieId;
+      }
+
       const [showtimesRes, moviesRes, cinemasRes] = await Promise.all([
-        api.get('/showtimes', {
-          params: { date: format(selectedDate, 'yyyy-MM-dd') }
-        }),
+        api.get('/showtimes', { params }),
         api.get('/movies'),
         api.get('/cinemas', { params: { lat: 10.762622, lng: 106.660172 } }),
       ]);
@@ -85,11 +96,22 @@ export default function ShowtimesPage() {
       // ⭐️ THAY THẾ API CALLS BẰNG MOCK DATA VÀ DELAY
        await new Promise(resolve => setTimeout(resolve, 600)); 
 
-      // Lọc dữ liệu showtime theo ngày đang chọn
+      // Lọc dữ liệu showtime theo ngày, rạp, phim
       const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-      const filteredShowtimes = mockShowtimes.filter(st => 
-      format(new Date(st.startTime), 'yyyy-MM-dd') === selectedDateStr
-    );
+      let filteredShowtimes = mockShowtimes.filter(st => 
+        format(new Date(st.startTime), 'yyyy-MM-dd') === selectedDateStr
+      );
+
+      // Filter by cinema if selected
+      if (selectedCinemaId !== 'all') {
+        filteredShowtimes = filteredShowtimes.filter(st => st.cinemaId === selectedCinemaId);
+      }
+
+      // Filter by movie if selected
+      if (selectedMovieId !== 'all') {
+        filteredShowtimes = filteredShowtimes.filter(st => st.movieId === selectedMovieId);
+      }
+
       setShowtimes(filteredShowtimes);
       setMovies(mockMovies);
       setCinemas(mockCinemas);
@@ -247,24 +269,81 @@ export default function ShowtimesPage() {
 
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-60">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, 'PPP')}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:max-w-4xl">
+              {/* Date Picker */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(selectedDate, 'PPP')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Cinema Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Cinema</Label>
+                <Select value={selectedCinemaId} onValueChange={setSelectedCinemaId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Cinemas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Cinemas</SelectItem>
+                    {cinemas.map((cinema) => (
+                      <SelectItem key={cinema.id} value={cinema.id}>
+                        {cinema.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Movie Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Movie</Label>
+                <Select value={selectedMovieId} onValueChange={setSelectedMovieId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Movies" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Movies</SelectItem>
+                    {movies.map((movie) => (
+                      <SelectItem key={movie.id} value={movie.id}>
+                        {movie.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">
+                {showtimes.length} showtimes scheduled
+              </div>
+              {(selectedCinemaId !== 'all' || selectedMovieId !== 'all') && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCinemaId('all');
+                    setSelectedMovieId('all');
+                  }}
+                >
+                  Clear Filters
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                />
-              </PopoverContent>
-            </Popover>
-            <div className="text-sm text-gray-500">
-              {showtimes.length} showtimes scheduled
+              )}
             </div>
           </div>
         </CardContent>
