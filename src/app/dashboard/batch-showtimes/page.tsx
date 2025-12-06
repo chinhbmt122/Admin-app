@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Calendar as CalendarIcon, Clock, Film, Building2, DoorOpen, Zap, History, ExternalLink } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Film, Building2, Zap, History, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -195,8 +195,17 @@ export default function BatchShowtimesPage() {
 
   const fetchReleases = async (movieId: string) => {
     try {
-      const response = await api.get(`/movies/${movieId}/releases`);
-      setReleases(response.data);
+      // TODO: Replace with real API when backend is ready
+      // const response = await api.get(`/movies/${movieId}/releases`);
+      // setReleases(response.data);
+      
+      // Mock data: Filter releases by movieId and only show ACTIVE or UPCOMING
+      const { mockReleases } = await import('@/lib/mockData');
+      const filtered = mockReleases.filter(r => 
+        r.movieId === movieId && 
+        (r.status === 'ACTIVE' || r.status === 'UPCOMING')
+      );
+      setReleases(filtered);
     } catch {
       toast({
         title: 'Error',
@@ -358,7 +367,7 @@ export default function BatchShowtimesPage() {
                 <Label htmlFor="cinemaId">Cinema *</Label>
                 <Select
                   value={formData.cinemaId}
-                  onValueChange={(value) => setFormData({ ...formData, cinemaId: value })}
+                  onValueChange={(value) => setFormData({ ...formData, cinemaId: value, hallId: '' })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select cinema" />
@@ -378,16 +387,19 @@ export default function BatchShowtimesPage() {
                 <Select
                   value={formData.hallId}
                   onValueChange={(value) => setFormData({ ...formData, hallId: value })}
+                  disabled={!formData.cinemaId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select hall" />
+                    <SelectValue placeholder={formData.cinemaId ? "Select hall" : "Select cinema first"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {halls.map((hall) => (
-                      <SelectItem key={hall.id} value={hall.id}>
-                        {hall.name} ({hall.capacity} seats)
-                      </SelectItem>
-                    ))}
+                    {halls
+                      .filter(hall => hall.cinemaId === formData.cinemaId)
+                      .map((hall) => (
+                        <SelectItem key={hall.id} value={hall.id}>
+                          {hall.name} ({hall.capacity} seats)
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -1,5 +1,125 @@
 import { Cinema, Hall, Movie, Showtime, Staff, Genre } from '@/types/index';
 
+export interface MovieRelease {
+  id: string;
+  movieId: string;
+  startDate: string;
+  endDate: string;
+  status: 'UPCOMING' | 'ACTIVE' | 'ENDED';
+  note: string;
+}
+
+export const mockReleases: MovieRelease[] = [
+  // Mission: Impossible - Dead Reckoning Part One
+  {
+    id: 'mr_001',
+    movieId: 'm_001',
+    startDate: '2025-11-20',
+    endDate: '2026-01-31',
+    status: 'ACTIVE',
+    note: 'Standard Release - Bom tấn hành động đỉnh cao từ Tom Cruise',
+  },
+  // Oppenheimer
+  {
+    id: 'mr_002',
+    movieId: 'm_002',
+    startDate: '2025-12-01',
+    endDate: '2026-02-15',
+    status: 'ACTIVE',
+    note: 'Extended Run - Tác phẩm được đề cử Oscar từ Christopher Nolan',
+  },
+  // Spider-Man: No Way Home
+  {
+    id: 'mr_003',
+    movieId: 'm_003',
+    startDate: '2025-11-25',
+    endDate: '2026-01-10',
+    status: 'ACTIVE',
+    note: 'Holiday Special - Bom tấn siêu anh hùng đa vũ trụ',
+  },
+  // Dune: Part Two
+  {
+    id: 'mr_004',
+    movieId: 'm_004',
+    startDate: '2025-12-10',
+    endDate: '2026-03-31',
+    status: 'ACTIVE',
+    note: 'Wide Release - Phần 2 của siêu phẩm Sci-Fi đoạt giải Oscar',
+  },
+  // The Marvels
+  {
+    id: 'mr_005',
+    movieId: 'm_005',
+    startDate: '2025-10-01',
+    endDate: '2025-11-30',
+    status: 'ENDED',
+    note: 'Limited Release - Marvel Cinematic Universe Phase 5',
+  },
+  // Wonka
+  {
+    id: 'mr_006',
+    movieId: 'm_006',
+    startDate: '2025-12-15',
+    endDate: '2026-02-28',
+    status: 'UPCOMING',
+    note: 'Christmas Release - Câu chuyện nguồn gốc của Willy Wonka',
+  },
+  // Mission: Impossible - Extended Release
+  {
+    id: 'mr_007',
+    movieId: 'm_001',
+    startDate: '2026-02-01',
+    endDate: '2026-04-15',
+    status: 'UPCOMING',
+    note: 'Chiếu lại theo yêu cầu khán giả - Phiên bản IMAX đặc biệt',
+  },
+  // Oppenheimer - Re-release
+  {
+    id: 'mr_008',
+    movieId: 'm_002',
+    startDate: '2026-02-15',
+    endDate: '2026-04-30',
+    status: 'UPCOMING',
+    note: 'Tái chiếu sau giải Oscar - Phiên bản 70mm IMAX độc quyền',
+  },
+  // Spider-Man - Fan Event
+  {
+    id: 'mr_009',
+    movieId: 'm_003',
+    startDate: '2026-01-15',
+    endDate: '2026-02-28',
+    status: 'UPCOMING',
+    note: 'Sự kiện đặc biệt cho fan - Bao gồm Q&A với dàn diễn viên',
+  },
+  // Dune: Part Two - IMAX Special
+  {
+    id: 'mr_010',
+    movieId: 'm_004',
+    startDate: '2026-04-01',
+    endDate: '2026-05-31',
+    status: 'UPCOMING',
+    note: 'Chiếu lại IMAX - Trải nghiệm điện ảnh đỉnh cao',
+  },
+  // The Marvels - Director's Cut
+  {
+    id: 'mr_011',
+    movieId: 'm_005',
+    startDate: '2025-09-10',
+    endDate: '2025-10-31',
+    status: 'ENDED',
+    note: 'Director\'s Cut - Phiên bản mở rộng với 25 phút cảnh quay mới',
+  },
+  // Wonka - Sing-Along Version
+  {
+    id: 'mr_012',
+    movieId: 'm_006',
+    startDate: '2026-03-01',
+    endDate: '2026-04-15',
+    status: 'UPCOMING',
+    note: 'Sing-along version - Đặc biệt cho gia đình và trẻ em',
+  },
+];
+
 export const mockCinemas: Cinema[] = [
   {
     id: 'c_hcm_001',
