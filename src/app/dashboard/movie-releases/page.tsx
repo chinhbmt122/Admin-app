@@ -162,6 +162,11 @@ export default function MovieReleasesPage() {
     endDate: '',
     note: '',
   });
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -292,6 +297,21 @@ export default function MovieReleasesPage() {
     }
   };
 
+  // Filter releases
+  const filteredReleases = releases.filter(release => {
+    const movie = getMovieById(release.movieId);
+    const status = getReleaseStatus(release);
+    
+    // Search by movie name
+    const matchSearch = !searchTerm || 
+      (movie?.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filter by status
+    const matchStatus = selectedStatus === 'all' || status === selectedStatus;
+    
+    return matchSearch && matchStatus;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -316,9 +336,51 @@ export default function MovieReleasesPage() {
           <CardHeader>
             <CardTitle>All Releases</CardTitle>
             <CardDescription>
-              {releases.length} release schedule{releases.length !== 1 ? 's' : ''} in total
+              {filteredReleases.length} of {releases.length} release schedule{releases.length !== 1 ? 's' : ''}
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4 md:max-w-2xl">
+              {/* Search */}
+              <div className="flex-1">
+                <Input
+                  placeholder="Search by movie name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Filter by Status */}
+              <div className="w-full md:w-64">
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="ended">Ended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchTerm || selectedStatus !== 'all') && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedStatus('all');
+                }}
+                className="mt-4"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </CardContent>
         </Card>
 
         {loading ? (
@@ -343,9 +405,25 @@ export default function MovieReleasesPage() {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredReleases.length === 0 ? (
+          <Card>
+            <CardContent className="py-16 text-center">
+              <CalendarIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No releases match your filters.</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedStatus('all');
+                }}
+              >
+                Clear Filters
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {releases.map((release) => {
+            {filteredReleases.map((release) => {
               const movie = getMovieById(release.movieId);
               const status = getReleaseStatus(release);
               
