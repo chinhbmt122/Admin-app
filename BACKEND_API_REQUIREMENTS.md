@@ -8,7 +8,7 @@
 ## 🎬 **1. MOVIES (Quản lý Phim)**
 
 ### 1.1. Lấy danh sách phim
-- **Dùng cho màn hình:** Movies Management (hiển thị danh sách phim trong bảng)
+- **Dùng cho màn hình:** Movies Management (hiển thị danh sách phim trong bảng), Showtimes (dropdown chọn phim), Batch Showtimes (dropdown chọn phim), Movie Releases (dropdown chọn phim khi thêm release)
 - **Mô tả:** Lấy tất cả phim trong hệ thống để hiển thị, tìm kiếm, lọc
 - **Method:** GET
 
@@ -56,7 +56,7 @@
 ## 🏢 **3. CINEMAS (Rạp chiếu phim)**
 
 ### 3.1. Lấy danh sách tất cả rạp
-- **Dùng cho màn hình:** Cinemas Management (hiển thị bảng rạp + tìm kiếm), Showtimes (dropdown chọn rạp)
+- **Dùng cho màn hình:** Cinemas Management (hiển thị bảng rạp + tìm kiếm), Showtimes (dropdown chọn rạp), Batch Showtimes (dropdown chọn rạp), Halls (dropdown chọn rạp khi thêm/sửa phòng chiếu)
 - **Mô tả:** Lấy danh sách tất cả rạp trong hệ thống
 - **Method:** GET
 - **Lưu ý:** Frontend tự filter client-side theo tên rạp/thành phố, không cần API search riêng
@@ -81,7 +81,7 @@
 ## 🎪 **4. HALLS (Phòng chiếu)**
 
 ### 4.1. Lấy danh sách tất cả phòng chiếu
-- **Dùng cho màn hình:** Halls Management (hiển thị bảng phòng chiếu, group theo rạp)
+- **Dùng cho màn hình:** Halls Management (hiển thị bảng phòng chiếu, group theo rạp), Showtimes (dropdown chọn phòng chiếu khi tạo lịch chiếu), Batch Showtimes (dropdown chọn phòng chiếu), Ticket Pricing (dropdown chọn phòng để xem/sửa giá vé)
 - **Mô tả:** Lấy tất cả phòng chiếu trong hệ thống
 - **Method:** GET
 - **Lưu ý:** Frontend tự group theo rạp (cinemaId), không cần API filter riêng
@@ -126,10 +126,10 @@
 - **Lưu ý:** Frontend tự group theo phim (movieId) khi hiển thị
 
 ### 5.2. Lấy danh sách phòng chiếu
-- **Dùng cho màn hình:** Showtimes Management (dropdown chọn phòng chiếu khi tạo lịch chiếu)
+- **Dùng cho màn hình:** Showtimes Management (dropdown chọn phòng chiếu khi tạo lịch chiếu), Batch Showtimes (dropdown chọn phòng chiếu)
 - **Mô tả:** Lấy danh sách phòng chiếu (halls) cho dropdown
 - **Method:** GET
-- **Lưu ý:** Có thể dùng lại API 4.1 nếu lọc theo rạp
+- **Lưu ý:** Dùng lại API 4.1 (GET /halls) - có thể lọc theo cinemaId nếu cần
 
 ### 5.3. Tạo lịch chiếu đơn lẻ
 - **Dùng cho màn hình:** Showtimes Management (dialog thêm 1 suất chiếu)
@@ -161,7 +161,7 @@
 ## 📅 **6. MOVIE RELEASES (Lịch phát hành phim)**
 
 ### 6.1. Lấy danh sách lịch phát hành theo phim
-- **Dùng cho màn hình:** Batch Showtimes (dropdown chọn release để tạo lịch chiếu theo phiên bản phát hành)
+- **Dùng cho màn hình:** Movie Releases Management (hiển thị bảng lịch phát hành), Batch Showtimes (dropdown chọn release để tạo lịch chiếu theo phiên bản phát hành)
 - **Mô tả:** Lấy các lịch phát hành của 1 bộ phim
 - **Method:** GET
 
