@@ -28,23 +28,32 @@ export const mockReleases: MovieRelease[] = [
     status: 'ACTIVE',
     note: 'Extended Run - Tác phẩm được đề cử Oscar từ Christopher Nolan',
   },
-  // Spider-Man: No Way Home
+  // Dune: Part Two - Holiday Release
   {
     id: 'mr_003',
     movieId: 'm_003',
     startDate: '2025-11-25',
     endDate: '2026-01-10',
     status: 'ACTIVE',
-    note: 'Holiday Special - Bom tấn siêu anh hùng đa vũ trụ',
+    note: 'Holiday Special - Siêu phẩm Sci-Fi đa giác quan',
   },
-  // Dune: Part Two
+  // Barbie - Standard Release
   {
     id: 'mr_004',
     movieId: 'm_004',
-    startDate: '2025-12-10',
-    endDate: '2026-03-31',
+    startDate: '2025-11-15',
+    endDate: '2026-01-20',
     status: 'ACTIVE',
-    note: 'Wide Release - Phần 2 của siêu phẩm Sci-Fi đoạt giải Oscar',
+    note: 'Standard Release - Hiện tượng phòng vé toàn cầu',
+  },
+  // Barbie - Extended Release
+  {
+    id: 'mr_004b',
+    movieId: 'm_004',
+    startDate: '2026-01-25',
+    endDate: '2026-03-31',
+    status: 'UPCOMING',
+    note: 'Extended Release - Chiếu lại theo yêu cầu khán giả',
   },
   // The Marvels
   {
@@ -82,19 +91,28 @@ export const mockReleases: MovieRelease[] = [
     status: 'UPCOMING',
     note: 'Tái chiếu sau giải Oscar - Phiên bản 70mm IMAX độc quyền',
   },
-  // Spider-Man - Fan Event
+  // Dune: Part Two - Fan Event
   {
     id: 'mr_009',
     movieId: 'm_003',
     startDate: '2026-01-15',
     endDate: '2026-02-28',
     status: 'UPCOMING',
-    note: 'Sự kiện đặc biệt cho fan - Bao gồm Q&A với dàn diễn viên',
+    note: 'Sự kiện đặc biệt cho fan - Bao gồm Q&A với đạo diễn Denis Villeneuve',
+  },
+  // Dune: Part Two - Standard Release
+  {
+    id: 'mr_010',
+    movieId: 'm_003',
+    startDate: '2025-12-10',
+    endDate: '2026-03-31',
+    status: 'ACTIVE',
+    note: 'Standard Release - Phần 2 của siêu phẩm Sci-Fi đoạt giải Oscar',
   },
   // Dune: Part Two - IMAX Special
   {
-    id: 'mr_010',
-    movieId: 'm_004',
+    id: 'mr_010b',
+    movieId: 'm_003',
     startDate: '2026-04-01',
     endDate: '2026-05-31',
     status: 'UPCOMING',

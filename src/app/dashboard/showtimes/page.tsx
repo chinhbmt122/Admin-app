@@ -36,7 +36,7 @@ import api from '@/lib/api';
 import type { Showtime, Movie, Cinema, Hall, CreateShowtimeRequest } from '@/types';
 import { format } from 'date-fns';
 
-import { mockShowtimes, mockMovies, mockCinemas, mockHalls } from '@/lib/mockData'; 
+import { mockShowtimes, mockMovies, mockCinemas, mockHalls, mockReleases } from '@/lib/mockData'; 
 
 
 export default function ShowtimesPage() {
@@ -516,16 +516,14 @@ export default function ShowtimesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {formData.movieId && (() => {
-                    const selectedMovie = movies.find(m => m.id === formData.movieId);
-                    // Lấy các release IDs từ showtimes của movie này
-                    const releaseIds = [...new Set(
-                      mockShowtimes
-                        .filter(st => st.movieId === formData.movieId)
-                        .map(st => st.movieReleaseId)
-                    )];
-                    return releaseIds.map((releaseId) => (
-                      <SelectItem key={releaseId} value={releaseId}>
-                        {selectedMovie?.title} - {releaseId}
+                    // Lấy các releases ACTIVE hoặc UPCOMING của movie này
+                    const releases = mockReleases.filter(r => 
+                      r.movieId === formData.movieId && 
+                      (r.status === 'ACTIVE' || r.status === 'UPCOMING')
+                    );
+                    return releases.map((release) => (
+                      <SelectItem key={release.id} value={release.id}>
+                        {release.startDate} → {release.endDate} ({release.status === 'ACTIVE' ? 'Now Showing' : 'Coming Soon'})
                       </SelectItem>
                     ));
                   })()}
