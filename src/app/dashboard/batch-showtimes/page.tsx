@@ -804,7 +804,7 @@ export default function BatchShowtimesPage() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-1" suppressHydrationWarning>
                           {new Date(item.timestamp).toLocaleString()}
                         </p>
                       </div>

@@ -11,14 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -31,12 +23,12 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
-import type { Showtime, Movie, Cinema, Hall, CreateShowtimeRequest } from '@/types';
+import type { Showtime, Movie, Cinema, Hall } from '@/types';
 import { format } from 'date-fns';
 
-import { mockShowtimes, mockMovies, mockCinemas, mockHalls, mockReleases } from '@/lib/mockData'; 
+import { mockShowtimes, mockMovies, mockCinemas, mockHalls } from '@/lib/mockData';
+import ShowtimeDialog from '@/components/forms/ShowtimeDialog'; 
 
 
 export default function ShowtimesPage() {
@@ -48,18 +40,8 @@ export default function ShowtimesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingShowtime, setEditingShowtime] = useState<Showtime | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedCinemaId, setSelectedCinemaId] = useState<string>('all');
-  const [selectedMovieId, setSelectedMovieId] = useState<string>('all');
-  const [formData, setFormData] = useState<CreateShowtimeRequest>({
-    movieId: '',
-    movieReleaseId: '',
-    cinemaId: '',
-    hallId: '',
-    startTime: '',
-    format: 'TWO_D',
-    language: 'vi',
-    subtitles: ['en'],
-  });
+  const [selectedCinemaId, setSelectedCinemaId] = useState('all');
+  const [selectedMovieId, setSelectedMovieId] = useState('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -144,57 +126,8 @@ export default function ShowtimesPage() {
   };
   */
 
-  const handleSubmit = async () => {
-    try {
-      if (editingShowtime) {
-        // Update existing showtime
-        await api.patch(`/showtimes/showtime/${editingShowtime.id}`, formData);
-        toast({ title: 'Success', description: 'Showtime updated successfully' });
-      } else {
-        // Create new showtime
-        await api.post('/showtimes/showtime', formData);
-        toast({ title: 'Success', description: 'Showtime created successfully' });
-      }
-      setDialogOpen(false);
-      fetchData();
-      resetForm();
-    } catch {
-      toast({
-        title: 'Error',
-        description: editingShowtime ? 'Failed to update showtime' : 'Failed to create showtime',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handleEdit = (showtime: Showtime) => {
     setEditingShowtime(showtime);
-    
-    // Normalize language code - ensure it matches Select options
-    let normalizedLanguage = showtime.language.toLowerCase();
-    // Map common variations to standard codes
-    const languageMap: Record<string, string> = {
-      'vietnamese': 'vi',
-      'english': 'en',
-      'korean': 'ko',
-      'chinese': 'zh',
-      'japanese': 'ja',
-      'thai': 'th'
-    };
-    if (languageMap[normalizedLanguage]) {
-      normalizedLanguage = languageMap[normalizedLanguage];
-    }
-    
-    setFormData({
-      movieId: showtime.movieId,
-      movieReleaseId: showtime.movieReleaseId,
-      cinemaId: showtime.cinemaId,
-      hallId: showtime.hallId,
-      startTime: showtime.startTime.slice(0, 16), // Format for datetime-local input
-      format: showtime.format, // Already in correct format (TWO_D, THREE_D, IMAX, FOUR_DX)
-      language: normalizedLanguage,
-      subtitles: showtime.subtitles, // Keep as array
-    });
     setDialogOpen(true);
   };
 
@@ -210,20 +143,6 @@ export default function ShowtimesPage() {
         variant: 'destructive',
       });
     }
-  };
-
-  const resetForm = () => {
-    setEditingShowtime(null);
-    setFormData({
-      movieId: '',
-      movieReleaseId: '',
-      cinemaId: '',
-      hallId: '',
-      startTime: '',
-      format: 'TWO_D',
-      language: 'vi',
-      subtitles: ['en'],
-    });
   };
 
   const getStatusColor = (status: string) => {
@@ -257,7 +176,7 @@ export default function ShowtimesPage() {
         </div>
         <Button
           onClick={() => {
-            resetForm();
+            setEditingShowtime(null);
             setDialogOpen(true);
           }}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
@@ -468,212 +387,23 @@ export default function ShowtimesPage() {
         )}
       </div>
 
-      {/* Add Showtime Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingShowtime ? 'Edit Showtime' : 'Add New Showtime'}</DialogTitle>
-            <DialogDescription>
-              {editingShowtime ? 'Update showtime details' : 'Schedule a new movie showtime'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="movie">Movie *</Label>
-              <Select
-                value={formData.movieId}
-                onValueChange={(value) => {
-                  setFormData({ 
-                    ...formData, 
-                    movieId: value,
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select movie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {movies.map((movie) => (
-                    <SelectItem key={movie.id} value={movie.id}>
-                      {movie.title} ({movie.runtime} mins)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="movieReleaseId">Movie Release ID *</Label>
-              <Select
-                value={formData.movieReleaseId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, movieReleaseId: value })
-                }
-                disabled={!formData.movieId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select movie release" />
-                </SelectTrigger>
-                <SelectContent>
-                  {formData.movieId && (() => {
-                    // Lấy các releases ACTIVE hoặc UPCOMING của movie này
-                    const releases = mockReleases.filter(r => 
-                      r.movieId === formData.movieId && 
-                      (r.status === 'ACTIVE' || r.status === 'UPCOMING')
-                    );
-                    return releases.map((release) => (
-                      <SelectItem key={release.id} value={release.id}>
-                        {release.startDate} → {release.endDate} ({release.status === 'ACTIVE' ? 'Now Showing' : 'Coming Soon'})
-                      </SelectItem>
-                    ));
-                  })()}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cinema">Cinema *</Label>
-              <Select
-                value={formData.cinemaId}
-                onValueChange={(value) => {
-                  setFormData({ ...formData, cinemaId: value, hallId: '' });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select cinema" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cinemas.map((cinema) => (
-                    <SelectItem key={cinema.id} value={cinema.id}>
-                      {cinema.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hall">Hall *</Label>
-              <Select
-                value={formData.hallId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, hallId: value })
-                }
-                disabled={!formData.cinemaId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select hall" />
-                </SelectTrigger>
-                <SelectContent>
-                  {halls
-                    .filter(hall => hall.cinemaId === formData.cinemaId)
-                    .map((hall) => (
-                      <SelectItem key={hall.id} value={hall.id}>
-                        {hall.name} ({hall.type}) - {hall.capacity} seats
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Start Time *</Label>
-                <Input
-                  id="startTime"
-                  type="datetime-local"
-                  value={formData.startTime}
-                  onChange={(e) => {
-                    setFormData({ 
-                      ...formData, 
-                      startTime: e.target.value,
-                    });
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="format">Format</Label>
-                <Select
-                  value={formData.format}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, format: value as 'TWO_D' | 'THREE_D' | 'IMAX' | 'FOUR_DX' })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TWO_D">2D</SelectItem>
-                    <SelectItem value="THREE_D">3D</SelectItem>
-                    <SelectItem value="IMAX">IMAX</SelectItem>
-                    <SelectItem value="FOUR_DX">4DX</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select
-                  value={formData.language}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, language: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="vi">Vietnamese</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ko">Korean</SelectItem>
-                    <SelectItem value="zh">Chinese</SelectItem>
-                    <SelectItem value="ja">Japanese</SelectItem>
-                    <SelectItem value="th">Thai</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subtitles">Subtitles (Phụ đề)</Label>
-              <Input
-                id="subtitles"
-                value={formData.subtitles.join(', ')}
-                onChange={(e) => {
-                  const subtitlesArray = e.target.value
-                    .split(',')
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-                  setFormData({ ...formData, subtitles: subtitlesArray });
-                }}
-                placeholder="Vietnamese, English (phân cách bằng dấu phẩy)"
-              />
-              <p className="text-xs text-gray-500">
-                Nhập các ngôn ngữ phụ đề, phân cách bằng dấu phẩy. Ví dụ: Vietnamese, English, Chinese
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDialogOpen(false);
-                resetForm();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
-            >
-              {editingShowtime ? 'Update Showtime' : 'Create Showtime'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Add/Edit Showtime Dialog */}
+      <ShowtimeDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingShowtime(null);
+          }
+        }}
+        movies={movies}
+        cinemas={cinemas}
+        halls={halls}
+        editingShowtime={editingShowtime}
+        onSuccess={() => {
+          fetchData();
+        }}
+      />
     </div>
   );
 }
