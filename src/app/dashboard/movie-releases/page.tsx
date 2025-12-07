@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Calendar as CalendarIcon, Pencil, Trash2, Film } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Pencil, Trash2, Film, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,8 +24,18 @@ import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
 import type { Movie } from '@/types';
 import { format } from 'date-fns';
-import { mockMovies, mockReleases } from '@/lib/mockData';
+import { mockMovies, mockReleases, mockCinemas, mockHalls } from '@/lib/mockData';
 import MovieReleaseDialog from '@/components/forms/MovieReleaseDialog';
+import ShowtimeDialog from '@/components/forms/ShowtimeDialog';
+import type { Cinema, Hall } from '@/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { MoreVertical } from 'lucide-react';
 
 interface MovieRelease {
   id: string;
@@ -39,9 +49,13 @@ interface MovieRelease {
 export default function MovieReleasesPage() {
   const [releases, setReleases] = useState<MovieRelease[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [cinemas, setCinemas] = useState<Cinema[]>([]);
+  const [halls, setHalls] = useState<Hall[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showtimeDialogOpen, setShowtimeDialogOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState<MovieRelease | null>(null);
+  const [selectedReleaseForShowtime, setSelectedReleaseForShowtime] = useState<MovieRelease | null>(null);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,6 +82,8 @@ export default function MovieReleasesPage() {
       await new Promise(resolve => setTimeout(resolve, 500));
       setReleases(mockReleases);
       setMovies(mockMovies);
+      setCinemas(mockCinemas);
+      setHalls(mockHalls);
     } catch {
       toast({
         title: 'Error',
@@ -298,22 +314,55 @@ export default function MovieReleasesPage() {
                       </Badge>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Button
-                        size="icon"
-                        onClick={() => handleEdit(release)}
-                        className="h-9 w-9 bg-white/90 hover:bg-white text-blue-600 hover:text-blue-700 shadow-lg"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        onClick={() => handleDelete(release.id)}
-                        className="h-9 w-9 bg-white/90 hover:bg-white text-red-600 hover:text-red-700 shadow-lg"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    {/* Action Menu */}
+                    <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="icon"
+                            className="h-9 w-9 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 shadow-lg"
+                          >
+                            <MoreVertical className="h-5 w-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <DropdownMenuItem 
+                            onClick={() => handleEdit(release)}
+                            className="cursor-pointer"
+                          >
+                            <Pencil className="mr-2 h-4 w-4 text-blue-600" />
+                            <span>Edit Release</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              const status = getReleaseStatus(release);
+                              if (status === 'ended') {
+                                toast({
+                                  title: 'Cannot Add Showtime',
+                                  description: 'Cannot create showtime for ended release',
+                                  variant: 'destructive',
+                                });
+                                return;
+                              }
+                              setSelectedReleaseForShowtime(release);
+                              setShowtimeDialogOpen(true);
+                            }}
+                            disabled={getReleaseStatus(release) === 'ended'}
+                            className="cursor-pointer"
+                          >
+                            <Clock className="mr-2 h-4 w-4 text-green-600" />
+                            <span>Add Showtime</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(release.id)}
+                            className="cursor-pointer text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
                     {/* Movie Title Overlay */}
@@ -386,6 +435,28 @@ export default function MovieReleasesPage() {
         editingRelease={editingRelease}
         onSuccess={() => {
           fetchData();
+        }}
+      />
+
+      {/* Add Showtime Dialog */}
+      <ShowtimeDialog
+        open={showtimeDialogOpen}
+        onOpenChange={(open) => {
+          setShowtimeDialogOpen(open);
+          if (!open) {
+            setSelectedReleaseForShowtime(null);
+          }
+        }}
+        movies={movies}
+        cinemas={cinemas}
+        halls={halls}
+        preSelectedMovieId={selectedReleaseForShowtime?.movieId}
+        preSelectedReleaseId={selectedReleaseForShowtime?.id}
+        onSuccess={() => {
+          toast({
+            title: 'Success',
+            description: 'Showtime created successfully',
+          });
         }}
       />
     </div>
