@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Calendar as CalendarIcon, Clock, Film, Building2, Zap, History, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -80,6 +81,10 @@ const TIME_SLOTS = [
 ];
 
 export default function BatchShowtimesPage() {
+  const searchParams = useSearchParams();
+  const preSelectedMovieId = searchParams.get('movieId');
+  const preSelectedReleaseId = searchParams.get('releaseId');
+  
   const [movies, setMovies] = useState<Movie[]>([]);
   const [cinemas, setCinemas] = useState<Cinema[]>([]);
   const [halls, setHalls] = useState<Hall[]>([]);
@@ -177,6 +182,20 @@ export default function BatchShowtimesPage() {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Pre-fill form when coming from movie release card
+  useEffect(() => {
+    if (preSelectedMovieId && preSelectedReleaseId) {
+      setFormData(prev => ({
+        ...prev,
+        movieId: preSelectedMovieId,
+        movieReleaseId: preSelectedReleaseId,
+      }));
+      // Fetch releases for the pre-selected movie
+      fetchReleases(preSelectedMovieId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preSelectedMovieId, preSelectedReleaseId]);
 
   const fetchData = async () => {
     try {
@@ -317,38 +336,58 @@ export default function BatchShowtimesPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="movieId">Movie *</Label>
-                <Select value={formData.movieId} onValueChange={handleMovieChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select movie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {movies.map((movie) => (
-                      <SelectItem key={movie.id} value={movie.id}>
-                        {movie.title} ({movie.runtime} mins)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {preSelectedMovieId ? (
+                  <Input
+                    value={movies.find(m => m.id === formData.movieId)?.title || ''}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                ) : (
+                  <Select value={formData.movieId} onValueChange={handleMovieChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select movie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {movies.map((movie) => (
+                        <SelectItem key={movie.id} value={movie.id}>
+                          {movie.title} ({movie.runtime} mins)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="movieReleaseId">Release Period *</Label>
-                <Select
-                  value={formData.movieReleaseId}
-                  onValueChange={(value) => setFormData({ ...formData, movieReleaseId: value })}
-                  disabled={!formData.movieId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select release period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {releases.map((release) => (
-                      <SelectItem key={release.id} value={release.id}>
-                        {release.startDate} → {release.endDate} ({release.note})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {preSelectedReleaseId ? (
+                  <Input
+                    value={
+                      releases.find(r => r.id === formData.movieReleaseId)
+                        ? `${releases.find(r => r.id === formData.movieReleaseId)?.startDate} → ${releases.find(r => r.id === formData.movieReleaseId)?.endDate}`
+                        : 'Loading...'
+                    }
+                    disabled
+                    className="bg-gray-50"
+                  />
+                ) : (
+                  <Select
+                    value={formData.movieReleaseId}
+                    onValueChange={(value) => setFormData({ ...formData, movieReleaseId: value })}
+                    disabled={!formData.movieId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select release period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {releases.map((release) => (
+                        <SelectItem key={release.id} value={release.id}>
+                          {release.startDate} → {release.endDate} ({release.note})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </CardContent>
           </Card>

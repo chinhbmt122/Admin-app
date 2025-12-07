@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Plus, Calendar as CalendarIcon, Pencil, Trash2, Film, Clock } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Pencil, Trash2, Film, Clock, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -34,6 +35,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
 
@@ -47,6 +51,7 @@ interface MovieRelease {
 }
 
 export default function MovieReleasesPage() {
+  const router = useRouter();
   const [releases, setReleases] = useState<MovieRelease[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [cinemas, setCinemas] = useState<Cinema[]>([]);
@@ -333,26 +338,57 @@ export default function MovieReleasesPage() {
                             <Pencil className="mr-2 h-4 w-4 text-blue-600" />
                             <span>Edit Release</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              const status = getReleaseStatus(release);
-                              if (status === 'ended') {
-                                toast({
-                                  title: 'Cannot Add Showtime',
-                                  description: 'Cannot create showtime for ended release',
-                                  variant: 'destructive',
-                                });
-                                return;
-                              }
-                              setSelectedReleaseForShowtime(release);
-                              setShowtimeDialogOpen(true);
-                            }}
-                            disabled={getReleaseStatus(release) === 'ended'}
-                            className="cursor-pointer"
-                          >
-                            <Clock className="mr-2 h-4 w-4 text-green-600" />
-                            <span>Add Showtime</span>
-                          </DropdownMenuItem>
+                          
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger 
+                              className={getReleaseStatus(release) === 'ended' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                              disabled={getReleaseStatus(release) === 'ended'}
+                            >
+                              <Clock className="mr-2 h-4 w-4 text-purple-600" />
+                              <span>Showtimes</span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const status = getReleaseStatus(release);
+                                  if (status === 'ended') {
+                                    toast({
+                                      title: 'Cannot Add Showtime',
+                                      description: 'Cannot create showtime for ended release',
+                                      variant: 'destructive',
+                                    });
+                                    return;
+                                  }
+                                  setSelectedReleaseForShowtime(release);
+                                  setShowtimeDialogOpen(true);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Clock className="mr-2 h-4 w-4 text-green-600" />
+                                <span>Single Showtime</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const status = getReleaseStatus(release);
+                                  if (status === 'ended') {
+                                    toast({
+                                      title: 'Cannot Create Batch',
+                                      description: 'Cannot create batch showtimes for ended release',
+                                      variant: 'destructive',
+                                    });
+                                    return;
+                                  }
+                                  // Navigate to batch showtimes page with pre-filled data
+                                  router.push(`/dashboard/batch-showtimes?movieId=${release.movieId}&releaseId=${release.id}`);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Zap className="mr-2 h-4 w-4 text-orange-600" />
+                                <span>Batch Showtimes</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                          
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => handleDelete(release.id)}
